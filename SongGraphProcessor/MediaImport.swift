@@ -167,7 +167,6 @@ class MediaImport
         haveSession.exportAsynchronously(
             completionHandler: {
                 () -> Void in
-                print("I am finished the Asynchronous import process!")
                 completionCode(self)
         })
         return

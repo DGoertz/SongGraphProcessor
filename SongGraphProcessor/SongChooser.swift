@@ -11,7 +11,7 @@ import MediaPlayer
 
 class SongChooser: UIViewController, MPMediaPickerControllerDelegate
 {
-
+    
     // MARK: Widget Connections.
     @IBOutlet weak var statusLabel: UILabel!
     
@@ -27,34 +27,40 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
     // MARK: Properties.
     var chosenSong: MPMediaItem?
     var mediaPicker: MPMediaPickerController?
-    var songGraph: UIImage?
     
     // MARK: View Controller Delegate Methods.
     override func viewDidLoad()
     {
         super.viewDidLoad()
-
+        
     }
-
+    
+    override func viewWillAppear(_ animated: Bool)
+    {
+        statusLabel.text = ""
+    }
+    
     override func didReceiveMemoryWarning()
     {
         super.didReceiveMemoryWarning()
-
+        
     }
-
+    
     // MARK: View Transition Methods.
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
-        if segue.identifier == SongChooser.segueToSongGrapher
+        if segue.identifier == SongChooser.segueToSongGrapher, let nextVC = segue.destination as? SongGrapher, let chosenSong = chosenSong
         {
-            if let nextVC = segue.destination as? SongGrapher
+            nextVC.songChosen = chosenSong
+            nextVC.title = (chosenSong.title != nil) ? chosenSong.title : "Unknown"
+        }
+    }
+    
+    func run(codeInMain: @escaping ()-> Void) -> Void
+    {
+        DispatchQueue.main.async
             {
-                if let chosenSong = chosenSong
-                {
-                    nextVC.songImage = self.songGraph
-                    nextVC.title = (chosenSong.title != nil) ? chosenSong.title : "Unknown"
-                }
-            }
+                codeInMain()
         }
     }
     
@@ -104,31 +110,25 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                         {
                             if FileManager.default.fileExists(atPath: importCacheFileURL.path)
                             {
-                                UIImage.image(fromSong: strongSelf.chosenSong!, graphMaxWidth: 1024, completion: {
-                                    (songImage)
-                                    in
-                                    DispatchQueue.main.async {
-                                        strongSelf.songGraph = songImage
-                                        strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: strongSelf)
-                                    }
-                                    
+                                strongSelf.run(codeInMain:
+                                    {
+                                        strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
+                                        strongSelf.statusLabel.text = "This worked! The file was imported properly to \(importCacheFileURL.absoluteString)!"
                                 })
-                                strongSelf.statusLabel.text = "This worked! The file was imported properly to \(importCacheFileURL.absoluteString)!"
                             }
                             else
                             {
-                                DispatchQueue.main.async
+                                strongSelf.run(codeInMain:
                                     {
                                         strongSelf.statusLabel.text = "Status good but file not found?"
-                                }
+                                })
                             }
                         }
                         else
                         {
-                            DispatchQueue.main.async
-                                {
-                                    strongSelf.statusLabel.text = "Import status is not completed.  It is \(importGuy.status)"
-                            }
+                            strongSelf.run(codeInMain:                                {
+                                strongSelf.statusLabel.text = "Import status is not completed.  It is \(importGuy.status)"
+                            })
                         }
                     }
             })

@@ -95,8 +95,6 @@ extension UIImage
         })
     }
     
-    // Will try to have the parameter 'graphMaxWidth' be the width of the UIScrollView that
-    // will contain the UIImage produced for this Song.
     class func image(fromSong: MPMediaItem, graphMaxWidth: Int, completion: @escaping (UIImage) -> Void) -> Void
     {
         guard let audioCacheFile = BundleWrapper.getImportCacheFileURL(forSong: fromSong)
@@ -112,7 +110,6 @@ extension UIImage
                 
                 do
                 {
-                    let bitsPerByte = 8
                     let bitDepth = 16
                     let reader: AVAssetReader = try AVAssetReader(asset: avAsset)
                     let songTrack: AVAssetTrack = avAsset.tracks[0]
@@ -126,7 +123,6 @@ extension UIImage
                     trackOutput.alwaysCopiesSampleData = false
                     reader.add(trackOutput)
                     // AVLinearPCMBitDepthKey was set to 16 bits or 2 bytes.
-                    let sampleSizeInBytes: UInt32 = UInt32(Double(bitDepth) / Double(bitsPerByte))
                     var samplesPerSecond: UInt32 = 0
                     var channelCount: UInt32 = 0
                     let formats = songTrack.formatDescriptions
@@ -150,8 +146,6 @@ extension UIImage
                         channelCount = audioDescription.pointee.mChannelsPerFrame
                     }
                     // We have multiple channels.
-                    // Should not need this.
-                    //let bytesPerSample: UInt32 = sampleSizeInBytes * channelCount
                     var songMaxSignal: Int16 = 0
                     let fullSongData: NSMutableData = NSMutableData()
                     // Begin ..............
@@ -214,8 +208,8 @@ extension UIImage
                                     var left = Int16(ceil(Double(totalLeft)/Double(sampleTally)))
                                     // It looks like 'songMaxSignal' is the Maximum Sample height
                                     // of either Channel across all samples being processed.
-                                    // What good is this?  It allows us to create a factor later 
-                                    // in the algorithm so that we can keep the Graph within a 
+                                    // What good is this?  It allows us to create a factor later
+                                    // in the algorithm so that we can keep the Graph within a
                                     // certain rectangular area.
                                     songMaxSignal = (left > songMaxSignal) ? left : songMaxSignal
                                     fullSongData.append(&left, length: MemoryLayout<Int16>.size)
@@ -248,13 +242,11 @@ extension UIImage
                         // We have compressed the data via whatever algorithm we have chosen above.
                         // Bottom line is that we will be drawing the graph from the samples that now exist in the fullSongData.
                         //  Therefore it is important to get this new sample count so that drawing to the Image can accurate.
-                        // Should not need this.
-                        //let calculatedSampleCount: UInt32  = UInt32(ceil(Double(fullSongData.length)/Double(bytesPerSample)))
                         let modernDataWrapper: Data = Data(referencing: fullSongData)
                         let samplesToGraph = modernDataWrapper.withUnsafeBytes({
                             Array(UnsafeBufferPointer<Int16>(start: $0, count: modernDataWrapper.count * MemoryLayout<Int16>.size))
                         })
-                        if let songGraphImage = UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: pixelsPerSecond)
+                        if let songGraphImage = UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: pixelsPerSecond, songLengthInSecs: songLengthInSecs)
                         {
                             completion(songGraphImage)
                         }
@@ -271,9 +263,9 @@ extension UIImage
         })
         return
     }
-
+    
     //MARK: samples has (-) values in it.
-    class func drawAudioImageGraph(withSamples samples: Array<Int16>, songMaxSignal: Int, sampleCount: Int, channelCount: UInt32, pixelsPerSecond: UInt) -> UIImage?
+    class func drawAudioImageGraph(withSamples samples: Array<Int16>, songMaxSignal: Int, sampleCount: Int, channelCount: UInt32, pixelsPerSecond: UInt, songLengthInSecs: TimeInterval) -> UIImage?
     {
         // So we will graph 2 channels where each wave has an upper and lower region with a space in the center and insets on the top and bottom:
         //
@@ -297,14 +289,16 @@ extension UIImage
         let lineNumberHeight: Float = Float(UIImage.kTimeNumberLineHeight + UIImage.kTimeLineNumberLineTextMargin)
         let totalImageHeight: Float = topHalfHeight + bottomHalfHeight + lineNumberHeight
         
-        // From the number line we will draw tick marks upwards TIME_NUMBER_LINE_SECOND_MARK_HEIGHT on the second markings and TIME_NUMBER_LINE_QUARTER_SECOND_MARK_HEIGHT on the quarter second markings.
+        // From the number line we will draw tick marks upwards:
+        // TIME_NUMBER_LINE_SECOND_MARK_HEIGHT on the second markings.
+        // TIME_NUMBER_LINE_QUARTER_SECOND_MARK_HEIGHT on the quarter second markings.
         let part1: Float = Float(UIImage.kGraphTopMargin + (UIImage.kWaveMaxHeight * 2))
         let part2: Float = Float(UIImage.kGraphMiddleMargin + (UIImage.kWaveMaxHeight * 2))
         let part3: Float = Float(UIImage.kGraphBottomMargin + UIImage.kTimeNumberLineHeight)
         let numberLineBottom: Float = part1 + part2 + part3
         
-        // The width of the resulting Graphic is really the number of samples to be drawn.
-        let imageSize: CGSize = CGSize(width: sampleCount, height: Int(ceil(totalImageHeight)))
+        // The width of the resulting Graphic is really the number of samples to be drawn.        
+        let imageSize: CGSize = CGSize(width: Int(Int(ceil(songLengthInSecs)) * Int(pixelsPerSecond)), height: Int(totalImageHeight))
         
         UIGraphicsBeginImageContext(imageSize)
         
@@ -314,9 +308,6 @@ extension UIImage
             print("Failed to obtain a Graphics Context!")
             return nil
         }
-        
-        let backgroundColor: UIColor = UIImage.kGraphColorBackground
-        context.setFillColor(backgroundColor.cgColor)
         
         context.setAlpha(1)
         var rect: CGRect = CGRect()
@@ -328,6 +319,8 @@ extension UIImage
         let rightColor: CGColor = UIImage.kGraphColorRightChannel.cgColor
         let timeLineColor: CGColor = UIImage.kGraphColorTimeLine.cgColor
         
+        let backgroundColor: UIColor = UIImage.kGraphColorBackground
+        context.setFillColor(backgroundColor.cgColor)
         context.fill(rect)
         
         // This is the middle of the Left Channel.
@@ -352,13 +345,10 @@ extension UIImage
         let pixelsPerMinute: Int = Int(pixelsPerSecond) * 60;
         
         // We need to decide whether the 5 second tick marks are far enough appart to allow the labeling to show up.
-        // If not we will try to use the number only and failing that non at all!
+        // If not we will try to use the number only and failing that none at all!
         var worstCase: String = "99 SEC"
         var useFiveSecUnitsLabel: Bool = true
         
-        // When it comes time to measure text use the NSString instance method:
-        // func size(attributes attrs: [String : Any]? = nil) -> CGSize
-        // Also the font name is given by UIImage.kFontName.
         let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize)) as Any]
         var sizeOfWorstCase:CGSize = (worstCase as NSString).size(attributes: fontAttributes)
         let labelMargin: CGFloat = 4
@@ -371,14 +361,16 @@ extension UIImage
             showFiveSecondLabels = CGFloat(pixelsPerFiveSecondInterval) > (sizeOfWorstCase.width + labelMargin)
             if showFiveSecondLabels == true
             {
+                // The spacing is too tight to show the units, i.e. SEC.
                 useFiveSecUnitsLabel = false
             }
         }
         
         var currentMinute: Int = 0
         var currentFiveSecond: Int = 0
-        let sampleMaxIndex = sampleCount - 1
-        for var sampleIndex in 0..<sampleMaxIndex
+        var currentColumn: Int = 0
+        var sampleIndex: Int = 0
+        while sampleIndex < (sampleCount - 1)
         {
             let left: Int16 = abs(samples[sampleIndex])
             var pixels: CGFloat = CGFloat(left)
@@ -387,11 +379,13 @@ extension UIImage
             // that we show it as as centered on a base line, half above and half below (maxWaveHeight).
             pixels = pixels * sampleAdjustmentFactor
             
-            let lineStartPoint = CGPoint(x: CGFloat(sampleIndex), y: centerLeft - pixels)
-            let lineEndPoint = CGPoint(x: CGFloat(sampleIndex), y: centerLeft + pixels)
+            // Need to spin and draw the same sample because we need to take up all the pixels that this sample represents on the time scale.
+            
+            let lineStartPoint = CGPoint(x: CGFloat(currentColumn), y: centerLeft - pixels)
+            let lineEndPoint = CGPoint(x: CGFloat(currentColumn), y: centerLeft + pixels)
+            context.setStrokeColor(leftColor)
             context.move(to: lineStartPoint)
             context.addLine(to: lineEndPoint)
-            context.setStrokeColor(leftColor)
             context.strokePath()
             
             if channelCount == 2
@@ -402,25 +396,26 @@ extension UIImage
                 
                 pixels = pixels * sampleAdjustmentFactor
                 
-                let lineStartPoint = CGPoint(x: CGFloat(sampleIndex), y: centerRight - pixels)
-                let lineEndPoint = CGPoint(x: CGFloat(sampleIndex), y: centerRight + pixels)
+                
+                let lineStartPoint = CGPoint(x: CGFloat(currentColumn), y: centerRight - pixels)
+                let lineEndPoint = CGPoint(x: CGFloat(currentColumn), y: centerRight + pixels)
+                context.setStrokeColor(rightColor)
                 context.move(to: lineStartPoint)
                 context.addLine(to: lineEndPoint)
-                context.setStrokeColor(rightColor)
                 context.strokePath()
             }
             
             // We will see what drawing a stroke every Second looks like!
-            let onSecondBoundary: Bool = (UInt(sampleIndex) % pixelsPerSecond) == 0
-            let onFiveSecondBoundary: Bool = (sampleIndex % pixelsPerFiveSecondInterval) == 0
-            let onMinuteBoundary: Bool = (sampleIndex % pixelsPerMinute) == 0
+            let onSecondBoundary: Bool = (UInt(currentColumn) % pixelsPerSecond) == 0
+            let onFiveSecondBoundary: Bool = (currentColumn % pixelsPerFiveSecondInterval) == 0
+            let onMinuteBoundary: Bool = (currentColumn % pixelsPerMinute) == 0
             
             if onSecondBoundary && !onFiveSecondBoundary && !onMinuteBoundary
             {
                 context.setLineWidth(CGFloat(UIImage.kTimeNumberLineOneSecondMarkThickness))
-                context.move(to: CGPoint(x: CGFloat(sampleIndex), y: CGFloat(numberLineBottom) - CGFloat(UIImage.kTimeNumberLineOneSecondMarkHeight)))
-                context.addLine(to: CGPoint(x: CGFloat(sampleIndex), y: CGFloat(numberLineBottom)))
                 context.setStrokeColor(timeLineColor)
+                context.move(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) - CGFloat(UIImage.kTimeNumberLineOneSecondMarkHeight)))
+                context.addLine(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom)))
                 context.strokePath()
             }
             
@@ -430,14 +425,14 @@ extension UIImage
             {
                 currentFiveSecond = currentFiveSecond + 5
                 context.setLineWidth(CGFloat(UIImage.kTimeNumberLineFiveSecondMarkThickness))
-                context.move(to: CGPoint(x: CGFloat(sampleIndex), y: (CGFloat(numberLineBottom) - CGFloat(UIImage.kTimeNumberLineFiveSecondMarkHeight))))
-                context.addLine(to: CGPoint(x: CGFloat(sampleIndex), y: CGFloat(numberLineBottom)))
                 context.setStrokeColor(timeLineColor)
+                context.move(to: CGPoint(x: CGFloat(currentColumn), y: (CGFloat(numberLineBottom) - CGFloat(UIImage.kTimeNumberLineFiveSecondMarkHeight))))
+                context.addLine(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom)))
                 context.strokePath()
                 
                 if showFiveSecondLabels == true
                 {
-                    let refPoint: CGPoint = CGPoint(x: CGFloat(sampleIndex), y: CGFloat(CGFloat(numberLineBottom) + CGFloat(UIImage.kTimeLineNumberLineTextMargin / 2)))
+                    let refPoint: CGPoint = CGPoint(x: CGFloat(currentColumn), y: CGFloat(CGFloat(numberLineBottom) + CGFloat(UIImage.kTimeLineNumberLineTextMargin / 2)))
                     let valueInInterval: Int = currentFiveSecond % 60
                     if useFiveSecUnitsLabel == true
                     {
@@ -454,19 +449,23 @@ extension UIImage
             if onMinuteBoundary == true
             {
                 context.setLineWidth(CGFloat(UIImage.kTimeNumberLineMinuteThickness))
-                context.move(to: CGPoint(x: CGFloat(sampleIndex), y: CGFloat(numberLineBottom) - CGFloat(UIImage.kTimeNumberLineMinuteMarkHeight)))
-                context.addLine(to: CGPoint(x: CGFloat(sampleIndex), y: CGFloat(numberLineBottom)))
                 context.setStrokeColor(timeLineColor)
+                context.move(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) - CGFloat(UIImage.kTimeNumberLineMinuteMarkHeight)))
+                context.addLine(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom)))
                 context.strokePath()
-                let refPoint: CGPoint = CGPoint(x: CGFloat(sampleIndex), y: CGFloat(numberLineBottom) + CGFloat(UIImage.kTimeLineNumberLineTextMargin / 2))
+                let refPoint: CGPoint = CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) + CGFloat(UIImage.kTimeLineNumberLineTextMargin / 2))
                 
-                if sampleIndex > 0
+                // onMinuteBoundary will be true at the very start so we have to detect
+                // being at least one sample down the way.
+                if currentColumn > 0
                 {
                     currentMinute = currentMinute + 1
                     UIImage.printUnitFrom(refPoint: refPoint, itsValue: currentMinute, inContext: context, usingUnit: "min", andAddedUnit: 0, andFont: printingFont)
                     currentFiveSecond = currentFiveSecond + 5
                 }
             }
+            currentColumn = currentColumn + 1
+            sampleIndex = sampleIndex + 1
         }
         // Create new image
         if let newImage = UIGraphicsGetImageFromCurrentImageContext()
