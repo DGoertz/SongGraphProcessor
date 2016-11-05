@@ -22,11 +22,17 @@ class SongGrapher : UIViewController
         super.viewDidLoad()
         if let songChosen = songChosen
         {
-            UIImage.image(fromSong: songChosen, graphMaxWidth: Int(scrollView.frame.size.width), completion: {
-                (songImage)
+            UIImage.image(fromSong: songChosen, graphMaxWidth: Int(self.songGraph.frame.size.width), completion: {
+                [weak self] (songImage)
                 in
-                DispatchQueue.main.async {
-                    self.songGraph.image = songImage
+                if let strongSelf = self
+                {
+                    DispatchQueue.main.async {
+                        strongSelf.scrollView.frame = strongSelf.view.frame
+                        strongSelf.songGraph.image = songImage
+                        strongSelf.scrollView.addSubview(strongSelf.songGraph)
+                        strongSelf.scrollView.contentSize = strongSelf.scrollView.bounds.size
+                    }
                 }
                 
             })

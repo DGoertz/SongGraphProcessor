@@ -32,7 +32,7 @@ extension UIImage
     static let kTimeNumberLineOneSecondMarkThickness: Int  = 2
     static let kTimeNumberLineOneSecondMarkHeight: Int     = 8
     
-    static let kTimeLineNumberLineTextMargin: Int          = 60
+    static let kTimeLineNumberLineTextMargin: Int          = 80
     
     static let kGraphMarkerBaseWidth: Int                  = 5
     static let kGraphMarkerBaseHeight: Int                 = 20
