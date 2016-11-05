@@ -8,22 +8,36 @@
 
 /* Begin PBXBuildFile section */
 		88FA5B191DCD3862007E7A0E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B181DCD3862007E7A0E /* AppDelegate.swift */; };
-		88FA5B1B1DCD3862007E7A0E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B1A1DCD3862007E7A0E /* ViewController.swift */; };
+		88FA5B1B1DCD3862007E7A0E /* SongChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B1A1DCD3862007E7A0E /* SongChooser.swift */; };
 		88FA5B1E1DCD3862007E7A0E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 88FA5B1C1DCD3862007E7A0E /* Main.storyboard */; };
 		88FA5B211DCD3862007E7A0E /* SongGraphProcessor.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B1F1DCD3862007E7A0E /* SongGraphProcessor.xcdatamodeld */; };
 		88FA5B231DCD3862007E7A0E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 88FA5B221DCD3862007E7A0E /* Assets.xcassets */; };
 		88FA5B261DCD3862007E7A0E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 88FA5B241DCD3862007E7A0E /* LaunchScreen.storyboard */; };
+		88FA5B2E1DCD39C0007E7A0E /* SongGrapher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B2D1DCD39C0007E7A0E /* SongGrapher.swift */; };
+		88FA5B301DCD3A43007E7A0E /* BundleWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B2F1DCD3A43007E7A0E /* BundleWrapper.swift */; };
+		88FA5B321DCD3A5B007E7A0E /* RINGM___.TTF in Resources */ = {isa = PBXBuildFile; fileRef = 88FA5B311DCD3A5B007E7A0E /* RINGM___.TTF */; };
+		88FA5B341DCD3A84007E7A0E /* UIImage_Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B331DCD3A84007E7A0E /* UIImage_Extension.swift */; };
+		88FA5B361DCD3AA0007E7A0E /* MediaImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B351DCD3AA0007E7A0E /* MediaImport.swift */; };
+		88FA5B381DCD3AB4007E7A0E /* MediaWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B371DCD3AB4007E7A0E /* MediaWrapper.swift */; };
+		88FA5B3A1DCD3F37007E7A0E /* ImportErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B391DCD3F37007E7A0E /* ImportErrors.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		88FA5B151DCD3862007E7A0E /* SongGraphProcessor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SongGraphProcessor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		88FA5B181DCD3862007E7A0E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		88FA5B1A1DCD3862007E7A0E /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		88FA5B1A1DCD3862007E7A0E /* SongChooser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongChooser.swift; sourceTree = "<group>"; };
 		88FA5B1D1DCD3862007E7A0E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		88FA5B201DCD3862007E7A0E /* SongGraphProcessor.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SongGraphProcessor.xcdatamodel; sourceTree = "<group>"; };
 		88FA5B221DCD3862007E7A0E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		88FA5B251DCD3862007E7A0E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		88FA5B271DCD3862007E7A0E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		88FA5B2D1DCD39C0007E7A0E /* SongGrapher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SongGrapher.swift; sourceTree = "<group>"; };
+		88FA5B2F1DCD3A43007E7A0E /* BundleWrapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BundleWrapper.swift; sourceTree = "<group>"; };
+		88FA5B311DCD3A5B007E7A0E /* RINGM___.TTF */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RINGM___.TTF"; sourceTree = "<group>"; };
+		88FA5B331DCD3A84007E7A0E /* UIImage_Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIImage_Extension.swift; sourceTree = "<group>"; };
+		88FA5B351DCD3AA0007E7A0E /* MediaImport.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaImport.swift; sourceTree = "<group>"; };
+		88FA5B371DCD3AB4007E7A0E /* MediaWrapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaWrapper.swift; sourceTree = "<group>"; };
+		88FA5B391DCD3F37007E7A0E /* ImportErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImportErrors.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,6 +51,69 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8834C8FA1DCE106100D325C0 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				88FA5B221DCD3862007E7A0E /* Assets.xcassets */,
+				88FA5B311DCD3A5B007E7A0E /* RINGM___.TTF */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		8834C8FB1DCE107700D325C0 /* ViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				88FA5B1A1DCD3862007E7A0E /* SongChooser.swift */,
+				88FA5B2D1DCD39C0007E7A0E /* SongGrapher.swift */,
+			);
+			name = ViewControllers;
+			sourceTree = "<group>";
+		};
+		8834C8FC1DCE109400D325C0 /* StoryBoards */ = {
+			isa = PBXGroup;
+			children = (
+				88FA5B1C1DCD3862007E7A0E /* Main.storyboard */,
+				88FA5B241DCD3862007E7A0E /* LaunchScreen.storyboard */,
+			);
+			name = StoryBoards;
+			sourceTree = "<group>";
+		};
+		8834C8FD1DCE10AD00D325C0 /* SongGraphing */ = {
+			isa = PBXGroup;
+			children = (
+				88FA5B351DCD3AA0007E7A0E /* MediaImport.swift */,
+				88FA5B391DCD3F37007E7A0E /* ImportErrors.swift */,
+				88FA5B331DCD3A84007E7A0E /* UIImage_Extension.swift */,
+			);
+			name = SongGraphing;
+			sourceTree = "<group>";
+		};
+		8834C8FE1DCE10CF00D325C0 /* MediaProcessing */ = {
+			isa = PBXGroup;
+			children = (
+				88FA5B371DCD3AB4007E7A0E /* MediaWrapper.swift */,
+			);
+			name = MediaProcessing;
+			sourceTree = "<group>";
+		};
+		8834C8FF1DCE110000D325C0 /* CoreData */ = {
+			isa = PBXGroup;
+			children = (
+				88FA5B1F1DCD3862007E7A0E /* SongGraphProcessor.xcdatamodeld */,
+			);
+			name = CoreData;
+			sourceTree = "<group>";
+		};
+		8834C9001DCE112400D325C0 /* ApplicationLevel */ = {
+			isa = PBXGroup;
+			children = (
+				88FA5B271DCD3862007E7A0E /* Info.plist */,
+				88FA5B181DCD3862007E7A0E /* AppDelegate.swift */,
+				88FA5B2F1DCD3A43007E7A0E /* BundleWrapper.swift */,
+			);
+			name = ApplicationLevel;
+			sourceTree = "<group>";
+		};
 		88FA5B0C1DCD3862007E7A0E = {
 			isa = PBXGroup;
 			children = (
@@ -56,13 +133,13 @@
 		88FA5B171DCD3862007E7A0E /* SongGraphProcessor */ = {
 			isa = PBXGroup;
 			children = (
-				88FA5B181DCD3862007E7A0E /* AppDelegate.swift */,
-				88FA5B1A1DCD3862007E7A0E /* ViewController.swift */,
-				88FA5B1C1DCD3862007E7A0E /* Main.storyboard */,
-				88FA5B221DCD3862007E7A0E /* Assets.xcassets */,
-				88FA5B241DCD3862007E7A0E /* LaunchScreen.storyboard */,
-				88FA5B271DCD3862007E7A0E /* Info.plist */,
-				88FA5B1F1DCD3862007E7A0E /* SongGraphProcessor.xcdatamodeld */,
+				8834C9001DCE112400D325C0 /* ApplicationLevel */,
+				8834C8FF1DCE110000D325C0 /* CoreData */,
+				8834C8FE1DCE10CF00D325C0 /* MediaProcessing */,
+				8834C8FD1DCE10AD00D325C0 /* SongGraphing */,
+				8834C8FC1DCE109400D325C0 /* StoryBoards */,
+				8834C8FB1DCE107700D325C0 /* ViewControllers */,
+				8834C8FA1DCE106100D325C0 /* Resources */,
 			);
 			path = SongGraphProcessor;
 			sourceTree = "<group>";
@@ -129,6 +206,7 @@
 			files = (
 				88FA5B261DCD3862007E7A0E /* LaunchScreen.storyboard in Resources */,
 				88FA5B231DCD3862007E7A0E /* Assets.xcassets in Resources */,
+				88FA5B321DCD3A5B007E7A0E /* RINGM___.TTF in Resources */,
 				88FA5B1E1DCD3862007E7A0E /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -140,9 +218,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				88FA5B1B1DCD3862007E7A0E /* ViewController.swift in Sources */,
+				88FA5B2E1DCD39C0007E7A0E /* SongGrapher.swift in Sources */,
+				88FA5B361DCD3AA0007E7A0E /* MediaImport.swift in Sources */,
+				88FA5B1B1DCD3862007E7A0E /* SongChooser.swift in Sources */,
 				88FA5B211DCD3862007E7A0E /* SongGraphProcessor.xcdatamodeld in Sources */,
 				88FA5B191DCD3862007E7A0E /* AppDelegate.swift in Sources */,
+				88FA5B3A1DCD3F37007E7A0E /* ImportErrors.swift in Sources */,
+				88FA5B301DCD3A43007E7A0E /* BundleWrapper.swift in Sources */,
+				88FA5B381DCD3AB4007E7A0E /* MediaWrapper.swift in Sources */,
+				88FA5B341DCD3A84007E7A0E /* UIImage_Extension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -304,6 +388,7 @@
 				88FA5B2C1DCD3862007E7A0E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
