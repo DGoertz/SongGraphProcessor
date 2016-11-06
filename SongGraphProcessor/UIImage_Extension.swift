@@ -484,7 +484,7 @@ extension UIImage
         inContext.saveGState()
         var minuteStr: String? = nil
         
-        // The extraUnit is for labels > 1 Minute. It basically shows what minute this 5 second interval is inside.
+        // The addedUnit is for labels > 1 Minute. It basically shows what minute this 5 second interval is inside.
         if andAddedUnit > 1
         {
             minuteStr = "\(andAddedUnit) min"
@@ -522,7 +522,8 @@ extension UIImage
         let timeNumberColor: UIColor = UIImage.kGraphColorTimeNumberMarkers
         let timeLineLetterColor: UIColor = UIImage.kGraphColorTimeNumberLetters
         let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: withFont.fontName, size: withFont.pointSize) as Any, NSForegroundColorAttributeName : timeNumberColor]
-        let textSize: CGSize = (forValue as NSString).size(attributes: fontAttributes)
+        let valueToBePrinted: NSString = forValue as NSString
+        let textSize: CGSize = valueToBePrinted.size(attributes: fontAttributes)
         let halfTextWidth: CGFloat = textSize.width / 2
         let quarterTextHeight: CGFloat = textSize.height / 4
         // Draw the text.
@@ -532,6 +533,6 @@ extension UIImage
         // Have to invert the Y coordinate system.
         inContext.textMatrix = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0)
         let textPoint: CGPoint = CGPoint(x: atPoint.x - halfTextWidth, y: atPoint.y + quarterTextHeight)
-        (forValue as NSString).draw(at: textPoint, withAttributes: fontAttributes)
+        valueToBePrinted.draw(at: textPoint, withAttributes: fontAttributes)
     }
 }

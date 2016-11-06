@@ -11,27 +11,28 @@ import MediaPlayer
 
 class SongGrapher : UIViewController
 {
+    static let sizeFactor: CGFloat = 1.5
+    
     var songImage: UIImage?
     var songChosen: MPMediaItem?
-    
-    @IBOutlet weak var scrollView: UIScrollView!
-    @IBOutlet weak var songGraph: UIImageView!
     
     override func viewDidLoad()
     {
         super.viewDidLoad()
         if let songChosen = songChosen
         {
-            UIImage.image(fromSong: songChosen, graphMaxWidth: Int(self.songGraph.frame.size.width), completion: {
+            UIImage.image(fromSong: songChosen, graphMaxWidth: Int(view.frame.size.width * SongGrapher.sizeFactor), completion: {
                 [weak self] (songImage)
                 in
                 if let strongSelf = self
                 {
-                    DispatchQueue.main.async {
-                        strongSelf.scrollView.frame = strongSelf.view.frame
-                        strongSelf.songGraph.image = songImage
-                        strongSelf.scrollView.addSubview(strongSelf.songGraph)
-                        strongSelf.scrollView.contentSize = strongSelf.scrollView.bounds.size
+                    DispatchQueue.main.async
+                        {
+                        let scrollView: UIScrollView = UIScrollView(frame: strongSelf.view.frame)
+                        let imageView: UIImageView = UIImageView(image: songImage)
+                        scrollView.addSubview(imageView)
+                        scrollView.contentSize = imageView.frame.size
+                        strongSelf.view.addSubview(scrollView)
                     }
                 }
                 

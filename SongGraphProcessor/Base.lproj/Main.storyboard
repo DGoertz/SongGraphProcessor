@@ -66,22 +66,8 @@
                     <view key="view" contentMode="scaleToFill" id="xTQ-3f-BUQ">
                         <rect key="frame" x="0.0" y="0.0" width="667" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7kP-4c-l8M">
-                                <rect key="frame" x="-1667" y="32" width="4000" height="311"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            </imageView>
-                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0e9-Xh-LdW">
-                                <rect key="frame" x="0.0" y="64" width="100" height="311"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            </scrollView>
-                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
-                    <connections>
-                        <outlet property="scrollView" destination="0e9-Xh-LdW" id="sQY-HA-feU"/>
-                        <outlet property="songGraph" destination="7kP-4c-l8M" id="8Pr-X6-pnq"/>
-                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="uto-pw-gaj" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
