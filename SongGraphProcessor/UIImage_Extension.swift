@@ -16,23 +16,28 @@ extension UIImage
     // MARK: Constants.
     static let kFontName: String                           = "ringBearer"
     static let kFontSize: Int                              = 14
+    
     static let kAlbumArtworkSize: Int                      = 63
-    static let kGraphTopMargin: Int                        = 10
+    
+    static let kGraphTopMargin: Int                        = 60
     static let kGraphBottomMargin: Int                     = 10
-    static let kGraphMiddleMargin: Int                     = 10
+    static let kGraphMiddleMargin: Int                     = 30
     static let kWaveMaxHeight: Int                         = 50
-    static let kTimeNumberLineHeight: Int                  = 20
-    static let kTimeNumberLineMinuteMarkHeight: Int        = 17
+    
     static let kTimeNumberLineThickness: Int               = 2
-    static let kTimeNumberLineMinuteThickness: Int         = 4
-    static let kGraphWidthFactor: Int                      = 6
+    static let kTimeNumberLineHeight: Int                  = 20
+    
+    static let kTimeNumberLineMinuteMarkThickness: Int     = 4
+    static let kTimeNumberLineMinuteMarkHeight: Int        = 17
+    
     static let kTimeNumberLineFiveSecondMarkThickness: Int = 2
     static let kTimeNumberLineFiveSecondMarkHeight: Int    = 13
     
     static let kTimeNumberLineOneSecondMarkThickness: Int  = 2
     static let kTimeNumberLineOneSecondMarkHeight: Int     = 8
     
-    static let kTimeLineNumberLineTextMargin: Int          = 80
+    static let kTimeLineNumberLineTextMargin: Int          = 20
+    static let kTimeLineNumberLineTextMarkerOffset         = 15
     
     static let kGraphMarkerBaseWidth: Int                  = 5
     static let kGraphMarkerBaseHeight: Int                 = 20
@@ -55,7 +60,7 @@ extension UIImage
     static let kGraphColorRightChannel: UIColor      = UIColor.black
     static let kGraphColorTimeLine: UIColor          = UIColor.purple
     static let kGraphColorTimeNumberMarkers: UIColor = UIColor.gray
-    static let kGraphColorTimeNumberLetters: UIColor = UIColor.black
+    static let kGraphColorTimeNumberLetters: UIColor = UIColor.orange
     
     static let kGraphColorMarkerBase: UIColor        = UIColor.black
     static let kGraphColorStartMarker: UIColor       = UIColor.red
@@ -95,7 +100,7 @@ extension UIImage
         })
     }
     
-    class func image(fromSong: MPMediaItem, graphMaxWidth: Int, completion: @escaping (UIImage) -> Void) -> Void
+    class func image(fromSong: MPMediaItem, graphMaxWidth: Int, graphMaxHeight: Int, completion: @escaping (UIImage) -> Void) -> Void
     {
         guard let audioCacheFile = BundleWrapper.getImportCacheFileURL(forSong: fromSong)
             else
@@ -159,8 +164,6 @@ extension UIImage
                     let pixelsPerSecond: UInt = UInt(ceil(Double(graphMaxWidth)/songLengthInSecs))
                     // Basically this is: samples per second / pixels per second which becomes samples / second * second / pixel which cancels the seconds and leaves samples / pixel.
                     // Also notice that samplesPerPixel means that we roll up 'samplesPerPixel' samples and average them to be represented in one pixel.
-                    // IMPORTANT: This is the difference between the width of the graph as we thought it would be from the width of the graphViewer control times the kGraphWidthFactor
-                    //            and the actually number of samples which come out of the audio file being read.
                     let samplesPerPixel: UInt = UInt(ceil(Double(samplesPerSecond)/Double(pixelsPerSecond)))
                     while (reader.status == AVAssetReaderStatus.reading)
                     {
@@ -246,7 +249,7 @@ extension UIImage
                         let samplesToGraph = modernDataWrapper.withUnsafeBytes({
                             Array(UnsafeBufferPointer<Int16>(start: $0, count: modernDataWrapper.count * MemoryLayout<Int16>.size))
                         })
-                        if let songGraphImage = UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: pixelsPerSecond, songLengthInSecs: songLengthInSecs)
+                        if let songGraphImage = UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: pixelsPerSecond, songLengthInSecs: songLengthInSecs,maxImageHeight: graphMaxHeight)
                         {
                             completion(songGraphImage)
                         }
@@ -265,7 +268,7 @@ extension UIImage
     }
     
     //MARK: samples has (-) values in it.
-    class func drawAudioImageGraph(withSamples samples: Array<Int16>, songMaxSignal: Int, sampleCount: Int, channelCount: UInt32, pixelsPerSecond: UInt, songLengthInSecs: TimeInterval) -> UIImage?
+    class func drawAudioImageGraph(withSamples samples: Array<Int16>, songMaxSignal: Int, sampleCount: Int, channelCount: UInt32, pixelsPerSecond: UInt, songLengthInSecs: TimeInterval, maxImageHeight: Int) -> UIImage?
     {
         // So we will graph 2 channels where each wave has an upper and lower region with a space in the center and insets on the top and bottom:
         //
@@ -276,6 +279,7 @@ extension UIImage
         //          + --- Right channel --- +
         //          +     Bottom Margin     +
         //          + - Time Number Line -- +
+        //          + - Number Line Margin  +
         //          +-----------------------+
         
         guard let printingFont: UIFont = UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize))
@@ -284,25 +288,37 @@ extension UIImage
             print("Unable to load font \(UIImage.kFontName) in \(#function)!")
             return nil
         }
-        // Try to react to actual data effecting the margin settings.
-        let realWaveMaxHeight = (songMaxSignal > UIImage.kWaveMaxHeight) ? Int(ceil(Float(songMaxSignal) * 1.3)) : UIImage.kWaveMaxHeight
+        
+        // From our samples of all channels involved we have kept track of the maximum 
+        // wave height possible in 'songMaxSignal'.
+        // Given this we want to create a factor based on the maximum area or height that 
+        // we have to work with when drawing the data.
+        // Ex: Say we have 250 pixels of space on which to draw the wave above or below.
+        //     We then divide this by the maximum in the sample which is say 100.
+        //     250 / 100 = 2.5.  So when we get a sample value we multiply by this factor 
+        //     in order to make the result fit into our 250 pixel are.
+        //     So that is 100 multiplied by the factor 2.5 and mark that value at 250; any
+        //     value below that will map below that pixel.
+        let sampleAdjustmentFactor: CGFloat = CGFloat(kWaveMaxHeight) / CGFloat(songMaxSignal)
         
         let topHalfHeight: Float = Float(UIImage.kGraphTopMargin + (UIImage.kWaveMaxHeight * 2) + UIImage.kGraphMiddleMargin)
         let bottomHalfHeight: Float = Float((UIImage.kWaveMaxHeight * 2) + UIImage.kGraphBottomMargin)
         let lineNumberHeight: Float = Float(UIImage.kTimeNumberLineHeight + UIImage.kTimeLineNumberLineTextMargin)
-        let totalImageHeight: Float = topHalfHeight + bottomHalfHeight + lineNumberHeight
         
+        // Painted screen height should dictate height minimum.
+        let totalImageHeight: Float = Float(ceil(topHalfHeight + bottomHalfHeight + lineNumberHeight)) > Float(maxImageHeight) ? Float(ceil(topHalfHeight + bottomHalfHeight + lineNumberHeight)) : Float(maxImageHeight)
         
         // From the number line we will draw tick marks upwards:
         // TIME_NUMBER_LINE_SECOND_MARK_HEIGHT on the second markings.
         // TIME_NUMBER_LINE_QUARTER_SECOND_MARK_HEIGHT on the quarter second markings.
         let part1: Float = Float(UIImage.kGraphTopMargin + (UIImage.kWaveMaxHeight * 2))
         let part2: Float = Float(UIImage.kGraphMiddleMargin + (UIImage.kWaveMaxHeight * 2))
-        let part3: Float = Float(UIImage.kGraphBottomMargin + (UIImage.kTimeNumberLineHeight / 2))
+        let part3: Float = Float(UIImage.kTimeNumberLineHeight)
         let numberLineBottom: Float = part1 + part2 + part3
         
-        // The width of the resulting Graphic is really the number of samples to be drawn.        
-        let imageSize: CGSize = CGSize(width: Int(Int(ceil(songLengthInSecs)) * Int(pixelsPerSecond)), height: Int(totalImageHeight))
+        // The width of the resulting Graphic is really the number of samples to be drawn.
+        let totalSongGraphWidth: Int = Int(Int(ceil(songLengthInSecs)) * Int(pixelsPerSecond))
+        let imageSize: CGSize = CGSize(width: totalSongGraphWidth, height: Int(totalImageHeight))
         
         UIGraphicsBeginImageContext(imageSize)
         
@@ -328,15 +344,10 @@ extension UIImage
         context.fill(rect)
         
         // This is the middle of the Left Channel.
-        let centerLeft: CGFloat = CGFloat(kGraphTopMargin + kWaveMaxHeight)
+        let centerLeft: CGFloat = CGFloat(UIImage.kGraphTopMargin + UIImage.kWaveMaxHeight)
         // This is the middle of the Right Channel.
-        let centerRight: CGFloat = CGFloat(kGraphTopMargin + (kWaveMaxHeight * 2) + kGraphMiddleMargin + kWaveMaxHeight)
+        let centerRight: CGFloat = CGFloat(UIImage.kGraphTopMargin + (UIImage.kWaveMaxHeight * 2) + UIImage.kGraphMiddleMargin + UIImage.kWaveMaxHeight)
         
-        // From our samples of all channels involved we have kept track of the maximum wave height possible.
-        // Given this we want to create a factor based on the maximum height that we have to work with when drawing the data.
-        // Ex: 250 pixels of space on which to draw the wave above or below divided by the maximum in the sample which is 100.
-        //     250 / 100 = 2.5.  So when we get a sample value of 100 we multiply by the factor 2.5 and mark that value at 250; any value below that will map below that pixel.
-        let sampleAdjustmentFactor: CGFloat = CGFloat(kWaveMaxHeight) / CGFloat(songMaxSignal)
         
         // Draw line marking the time scale horizontal.
         context.setLineWidth(CGFloat(kTimeNumberLineThickness))
@@ -436,10 +447,12 @@ extension UIImage
                 
                 if showFiveSecondLabels == true
                 {
-                    let refPoint: CGPoint = CGPoint(x: CGFloat(currentColumn), y: CGFloat(CGFloat(numberLineBottom) + CGFloat(UIImage.kTimeLineNumberLineTextMargin / 2)))
+                    var refPoint: CGPoint = CGPoint(x: CGFloat(currentColumn), y: CGFloat(CGFloat(numberLineBottom) + CGFloat(UIImage.kTimeLineNumberLineTextMargin / 2)))
+
                     let valueInInterval: Int = currentFiveSecond % 60
                     if useFiveSecUnitsLabel == true
                     {
+                        refPoint.y = refPoint.y + CGFloat(UIImage.kTimeLineNumberLineTextMarkerOffset)
                         UIImage.printUnitFrom(refPoint: refPoint, itsValue: valueInInterval, inContext: context, usingUnit: "sec", andAddedUnit: currentMinute, andFont: printingFont)
                     }
                     else
@@ -452,17 +465,19 @@ extension UIImage
             // Draw the full minute boundary tick marks.
             if onMinuteBoundary == true
             {
-                context.setLineWidth(CGFloat(UIImage.kTimeNumberLineMinuteThickness))
+                context.setLineWidth(CGFloat(UIImage.kTimeNumberLineMinuteMarkThickness))
                 context.setStrokeColor(timeLineColor)
                 context.move(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) - CGFloat(UIImage.kTimeNumberLineMinuteMarkHeight)))
                 context.addLine(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom)))
                 context.strokePath()
-                let refPoint: CGPoint = CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) + CGFloat(UIImage.kTimeLineNumberLineTextMargin / 2))
+
+                var refPoint: CGPoint = CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) + CGFloat(UIImage.kTimeLineNumberLineTextMargin / 2))
                 
                 // onMinuteBoundary will be true at the very start so we have to detect
                 // being at least one sample down the way.
                 if currentColumn > 0
                 {
+                    refPoint.y = refPoint.y + CGFloat(UIImage.kTimeLineNumberLineTextMarkerOffset)
                     currentMinute = currentMinute + 1
                     UIImage.printUnitFrom(refPoint: refPoint, itsValue: currentMinute, inContext: context, usingUnit: "min", andAddedUnit: 0, andFont: printingFont)
                     currentFiveSecond = currentFiveSecond + 5
@@ -486,6 +501,7 @@ extension UIImage
     {
         // Preserve callers Context by pushing it onto a stack.
         inContext.saveGState()
+        
         var minuteStr: String? = nil
         
         // The addedUnit is for labels > 1 Minute. It basically shows what minute this 5 second interval is inside.
@@ -495,7 +511,9 @@ extension UIImage
             UIImage.printUnitLabel(forValue: minuteStr!, inContext: inContext, atPoint: refPoint, withFont: andFont)
             let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize)) as Any]
             let textSize: CGSize = (minuteStr! as NSString).size(attributes: fontAttributes)
+            
             let newRefPoint: CGPoint = CGPoint(x: refPoint.x, y: refPoint.y + textSize.height)
+
             if let usingUnit = usingUnit
             {
                 minuteStr = "\(itsValue) \(usingUnit)"
@@ -523,6 +541,9 @@ extension UIImage
     
     class func printUnitLabel(forValue: String, inContext: CGContext, atPoint: CGPoint, withFont: UIFont) -> Void
     {
+        // Preserve callers Context by pushing it onto a stack.
+        inContext.saveGState()
+        
         let timeNumberColor: UIColor = UIImage.kGraphColorTimeNumberMarkers
         let timeLineLetterColor: UIColor = UIImage.kGraphColorTimeNumberLetters
         let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: withFont.fontName, size: withFont.pointSize) as Any, NSForegroundColorAttributeName : timeNumberColor]
@@ -538,5 +559,7 @@ extension UIImage
         inContext.textMatrix = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0)
         let textPoint: CGPoint = CGPoint(x: atPoint.x - halfTextWidth, y: atPoint.y + quarterTextHeight)
         valueToBePrinted.draw(at: textPoint, withAttributes: fontAttributes)
+        
+        inContext.restoreGState()
     }
 }

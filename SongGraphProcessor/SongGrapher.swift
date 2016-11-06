@@ -16,12 +16,12 @@ class SongGrapher : UIViewController
     var songImage: UIImage?
     var songChosen: MPMediaItem?
     
-    override func viewDidLoad()
+    override func viewDidAppear(_ animated: Bool)
     {
-        super.viewDidLoad()
+        super.viewDidAppear(animated)
         if let songChosen = songChosen
         {
-            UIImage.image(fromSong: songChosen, graphMaxWidth: Int(view.frame.size.width * SongGrapher.sizeFactor), completion: {
+            UIImage.image(fromSong: songChosen, graphMaxWidth: Int(view.bounds.size.width * SongGrapher.sizeFactor), graphMaxHeight: Int(view.bounds.size.height), completion: {
                 [weak self] (songImage)
                 in
                 if let strongSelf = self
