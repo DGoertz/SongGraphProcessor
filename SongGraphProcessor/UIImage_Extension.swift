@@ -37,7 +37,8 @@ extension UIImage
     static let kTimeNumberLineOneSecondMarkHeight: Int     = 8
     
     static let kTimeLineNumberLineTextMargin: Int          = 20
-    static let kTimeLineNumberLineTextMarkerOffset         = 15
+    static let kTimeLineNumberLineTextMarkerOffset: Int    = 15
+    static let kTimeLineNumberLineTextMarkerMargin: Int    = 4
     
     static let kGraphMarkerBaseWidth: Int                  = 5
     static let kGraphMarkerBaseHeight: Int                 = 20
@@ -289,6 +290,8 @@ extension UIImage
             return nil
         }
         
+        let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize)) as Any]
+        
         // From our samples of all channels involved we have kept track of the maximum 
         // wave height possible in 'songMaxSignal'.
         // Given this we want to create a factor based on the maximum area or height that 
@@ -348,7 +351,6 @@ extension UIImage
         // This is the middle of the Right Channel.
         let centerRight: CGFloat = CGFloat(UIImage.kGraphTopMargin + (UIImage.kWaveMaxHeight * 2) + UIImage.kGraphMiddleMargin + UIImage.kWaveMaxHeight)
         
-        
         // Draw line marking the time scale horizontal.
         context.setLineWidth(CGFloat(kTimeNumberLineThickness))
         context.move(to: CGPoint(x: 0, y: Int(numberLineBottom)))
@@ -364,16 +366,15 @@ extension UIImage
         var worstCase: String = "99 SEC"
         var useFiveSecUnitsLabel: Bool = true
         
-        let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize)) as Any]
         var sizeOfWorstCase:CGSize = (worstCase as NSString).size(attributes: fontAttributes)
-        let labelMargin: CGFloat = 4
-        var showFiveSecondLabels = CGFloat(pixelsPerFiveSecondInterval) > (sizeOfWorstCase.width + labelMargin)
+        
+        var showFiveSecondLabels = CGFloat(pixelsPerFiveSecondInterval) > (sizeOfWorstCase.width + CGFloat(UIImage.kTimeLineNumberLineTextMarkerMargin))
         
         if showFiveSecondLabels == false
         {
             worstCase = "99"
             sizeOfWorstCase = (worstCase as NSString).size(attributes: fontAttributes)
-            showFiveSecondLabels = CGFloat(pixelsPerFiveSecondInterval) > (sizeOfWorstCase.width + labelMargin)
+            showFiveSecondLabels = CGFloat(pixelsPerFiveSecondInterval) > (sizeOfWorstCase.width + CGFloat(UIImage.kTimeLineNumberLineTextMarkerMargin))
             if showFiveSecondLabels == true
             {
                 // The spacing is too tight to show the units, i.e. SEC.
@@ -505,7 +506,7 @@ extension UIImage
         var minuteStr: String? = nil
         
         // The addedUnit is for labels > 1 Minute. It basically shows what minute this 5 second interval is inside.
-        if andAddedUnit > 1
+        if andAddedUnit >= 1
         {
             minuteStr = "\(andAddedUnit) min"
             UIImage.printUnitLabel(forValue: minuteStr!, inContext: inContext, atPoint: refPoint, withFont: andFont)

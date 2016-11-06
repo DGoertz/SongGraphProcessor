@@ -11,7 +11,7 @@ import MediaPlayer
 
 class SongGrapher : UIViewController
 {
-    static let sizeFactor: CGFloat = 1.5
+    static let sizeFactor: CGFloat = 10
     
     var songImage: UIImage?
     var songChosen: MPMediaItem?
