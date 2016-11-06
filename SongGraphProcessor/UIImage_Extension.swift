@@ -19,7 +19,7 @@ extension UIImage
     static let kAlbumArtworkSize: Int                      = 63
     static let kGraphTopMargin: Int                        = 10
     static let kGraphBottomMargin: Int                     = 10
-    static let kGraphMiddleMargin: Int                     = 5
+    static let kGraphMiddleMargin: Int                     = 10
     static let kWaveMaxHeight: Int                         = 50
     static let kTimeNumberLineHeight: Int                  = 20
     static let kTimeNumberLineMinuteMarkHeight: Int        = 17
@@ -284,17 +284,21 @@ extension UIImage
             print("Unable to load font \(UIImage.kFontName) in \(#function)!")
             return nil
         }
+        // Try to react to actual data effecting the margin settings.
+        let realWaveMaxHeight = (songMaxSignal > UIImage.kWaveMaxHeight) ? Int(ceil(Float(songMaxSignal) * 1.3)) : UIImage.kWaveMaxHeight
+        
         let topHalfHeight: Float = Float(UIImage.kGraphTopMargin + (UIImage.kWaveMaxHeight * 2) + UIImage.kGraphMiddleMargin)
         let bottomHalfHeight: Float = Float((UIImage.kWaveMaxHeight * 2) + UIImage.kGraphBottomMargin)
         let lineNumberHeight: Float = Float(UIImage.kTimeNumberLineHeight + UIImage.kTimeLineNumberLineTextMargin)
         let totalImageHeight: Float = topHalfHeight + bottomHalfHeight + lineNumberHeight
+        
         
         // From the number line we will draw tick marks upwards:
         // TIME_NUMBER_LINE_SECOND_MARK_HEIGHT on the second markings.
         // TIME_NUMBER_LINE_QUARTER_SECOND_MARK_HEIGHT on the quarter second markings.
         let part1: Float = Float(UIImage.kGraphTopMargin + (UIImage.kWaveMaxHeight * 2))
         let part2: Float = Float(UIImage.kGraphMiddleMargin + (UIImage.kWaveMaxHeight * 2))
-        let part3: Float = Float(UIImage.kGraphBottomMargin + UIImage.kTimeNumberLineHeight)
+        let part3: Float = Float(UIImage.kGraphBottomMargin + (UIImage.kTimeNumberLineHeight / 2))
         let numberLineBottom: Float = part1 + part2 + part3
         
         // The width of the resulting Graphic is really the number of samples to be drawn.        
