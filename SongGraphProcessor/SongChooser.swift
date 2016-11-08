@@ -84,86 +84,75 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
         guard let importCacheFileURL = BundleWrapper.getImportCacheFileURL(forSong: self.chosenSong!)
             else
         {
-            mediaPicker.dismiss(animated: true, completion: nil)
-            self.putUpError(message: "Failed to aquire a path for the temporary Import File!", title: "Song Choice Error")
+            CentralCode.showError(message: "Failed to aquire a path for the temporary Import File!", title: "Song Choice Error", onView: self)
             self.statusLabel.text = "Failed to aquire a path for the temporary Import File!"
             return
         }
         guard let inputURL = self.chosenSong!.assetURL
             else
         {
-            mediaPicker.dismiss(animated: true, completion: nil)
-            self.putUpError(message: "Failed to find a path to the chosen music File!", title: "Song Choice Error")
+            CentralCode.showError(message: "Failed to find a path to the chosen music File!", title: "Song Choice Error", onView: self)
             self.statusLabel.text = "Failed to find a path to the chosen music File!"
             return
         }
-        
-            if let hasChosenASong = self.chosenSong
+        if let hasChosenASong = self.chosenSong
+        {
+            if BundleWrapper.doesImportCacheFileExist(forSong: hasChosenASong)
             {
-                if BundleWrapper.doesImportCacheFileExist(forSong: hasChosenASong)
+                self.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
+            }
+            else
+            {
+                do
                 {
-                    self.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
-                }
-                else
-                {
-                    do
-                    {
-                        let importGuy = MediaImport()
-                        try importGuy.doImport(inputURL, output: importCacheFileURL, completionCode:
+                    let importGuy = MediaImport()
+                    try importGuy.doImport(inputURL, output: importCacheFileURL, completionCode:
+                        {
+                            [weak self] (importGuy) in
+                            if let strongSelf = self
                             {
-                                [weak self] (importGuy) in
-                                if let strongSelf = self
+                                if importGuy.status == AVAssetExportSessionStatus.completed
                                 {
-                                    if importGuy.status == AVAssetExportSessionStatus.completed
+                                    if FileManager.default.fileExists(atPath: importCacheFileURL.path)
                                     {
-                                        if FileManager.default.fileExists(atPath: importCacheFileURL.path)
-                                        {
-                                            strongSelf.run(codeInMain:
-                                                {
-                                                    strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
-                                            })
-                                        }
-                                        else
-                                        {
-                                            strongSelf.run(codeInMain:
-                                                {
-                                                    strongSelf.statusLabel.text = "Status good but file not found?"
-                                            })
-                                        }
+                                        strongSelf.run(codeInMain:
+                                            {
+                                                strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
+                                        })
                                     }
                                     else
                                     {
-                                        strongSelf.run(codeInMain:                                {
-                                            strongSelf.statusLabel.text = "Import status is not completed.  It is \(importGuy.status)"
+                                        strongSelf.run(codeInMain:
+                                            {
+                                                CentralCode.showError(message: "Import Status of music file is good but file was not found after copy?", title: "Import Error", onView: strongSelf)
+                                                strongSelf.statusLabel.text = "Status good but file not found?"
                                         })
                                     }
                                 }
-                        })
-                    }
-                    catch let error
-                    {
-                        self.putUpError(message: error.localizedDescription, title: "Song Choice Error")
-                    }
-                    
+                                else
+                                {
+                                    strongSelf.run(codeInMain:
+                                        {
+                                        CentralCode.showError(message: "Import Status is not completed.  It is \(importGuy.status)", title: "Import Error", onView: strongSelf)
+                                        strongSelf.statusLabel.text = "Import status is not completed.  It is \(importGuy.status)"
+                                    })
+                                }
+                            }
+                    })
                 }
-            }        
+                catch let error
+                {
+                    CentralCode.showError(message: error.localizedDescription, title: "Song Choice Error", onView: self)
+                }
+                
+            }
+        }
         mediaPicker.dismiss(animated: true, completion: nil)
     }
     
     func mediaPickerDidCancel(_ mediaPicker: MPMediaPickerController)
     {
         print("Song pick was canceled")
-    }
-    
-    // MARK: Utility Methods.
-    func putUpError(message: String, title: String)
-    {
-        let errorBox: UIAlertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let okButton: UIAlertAction = UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: nil)
-        let cancelButton: UIAlertAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: nil)
-        errorBox.addAction(okButton)
-        errorBox.addAction(cancelButton)
-        self.present(errorBox, animated: true, completion: nil)
     }
 }
 

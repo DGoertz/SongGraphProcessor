@@ -249,10 +249,11 @@ extension UIImage
                         // We have compressed the data via whatever algorithm we have chosen above.
                         // Bottom line is that we will be drawing the graph from the samples that now exist in the fullSongData.
                         //  Therefore it is important to get this new sample count so that drawing to the Image can accurate.
-                        let modernDataWrapper: Data = Data(referencing: fullSongData)
-                        let samplesToGraph = modernDataWrapper.withUnsafeBytes({
-                            Array(UnsafeBufferPointer<Int16>(start: $0, count: modernDataWrapper.count * MemoryLayout<Int16>.size))
-                        })
+                        //let modernDataWrapper: Data = Data(referencing: fullSongData)
+                        // ***
+                        
+                        var samplesToGraph = [Int16](repeating: 0, count:fullSongData.length)
+                        fullSongData.getBytes(&samplesToGraph, length: fullSongData.length * MemoryLayout<Int16>.size)
                         let (songGraphImage, error) = UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: pixelsPerSecond, songLengthInSecs: songLengthInSecs,maxImageHeight: graphMaxHeight)
                         if let error = error
                         {

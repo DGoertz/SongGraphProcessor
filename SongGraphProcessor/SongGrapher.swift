@@ -30,12 +30,7 @@ class SongGrapher : UIViewController
                         {
                             if let imageError = imageError
                             {
-                                let errorBox: UIAlertController = UIAlertController(title: "Song Graph Error", message: imageError.localizedDescription, preferredStyle: .alert)
-                                let okButton: UIAlertAction = UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: nil)
-                                let cancelButton: UIAlertAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: nil)
-                                errorBox.addAction(okButton)
-                                errorBox.addAction(cancelButton)
-                                strongSelf.present(errorBox, animated: true, completion: nil)
+                                CentralCode.showError(message: imageError.localizedDescription, title: "Song Graph Error", onView: strongSelf)
                                 return
                             }
                             else
