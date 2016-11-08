@@ -72,12 +72,12 @@ extension UIImage
 
 extension UIImage
 {
-    class func getTimingInfo(fromSong: MPMediaItem, completion: @escaping (CMTime?, UIImageErrors?) -> Void ) -> Void
+    class func getTimingInfo(fromSong: MPMediaItem, completion: @escaping (CMTime?, String?) -> Void ) -> Void
     {
         guard let audioCacheFile = BundleWrapper.getImportCacheFileURL(forSong: fromSong)
             else
         {
-            completion(nil, UIImageErrors.importCacheFileNotFound(errorMessage: "In __FUNC__ and unable to obtain the location of the Import Audio Cache file!"))
+            completion(nil, "In __FUNC__ and unable to obtain the location of the Import Audio Cache file!")
             return
         }
         let assetOptions: [String : Any] = [AVURLAssetPreferPreciseDurationAndTimingKey : NSNumber(value: true)]
@@ -95,31 +95,31 @@ extension UIImage
                 case .loaded:
                     completion(avAsset.duration, nil)
                 case .cancelled, .failed, .loading, .unknown:
-                    completion(nil, UIImageErrors.importCacheFileNotFound(errorMessage: "Tried to load the attribute [duration] in \(#function) and it failed with the error: \(error?.localizedDescription)"))
+                    completion(nil, "Tried to load the attribute [duration] in \(#function) and it failed with the error: \(error?.localizedDescription)")
                 }
         })
     }
     
-    class func image(fromSong: MPMediaItem, graphMaxWidth: Int, graphMaxHeight: Int, completion: @escaping (UIImage?, UIImageErrors?) -> Void) -> Void
+    class func image(fromSong: MPMediaItem, graphMaxWidth: Int, graphMaxHeight: Int, completion: @escaping (UIImage?, String?) -> Void) -> Void
     {
         // Need to do a quick check to see whether we already have the Image or
         // what is known as the Song Graph File.
         guard let audioCacheFile = BundleWrapper.getImportCacheFileURL(forSong: fromSong)
             else
         {
-            completion(nil, UIImageErrors.importCacheFileNotFound(errorMessage: "In \(#function) and unable to obtain the location of the Import Audio Cache file!"))
+            completion(nil, "In \(#function) and unable to obtain the location of the Import Audio Cache file!")
             return
         }
         let avAsset = AVURLAsset(url: audioCacheFile, options: nil)
         UIImage.getTimingInfo(fromSong: fromSong, completion:
             {
-                (accurateDuration, imageError) in
+                (accurateDuration, errorMessage) in
                 
                 do
                 {
-                    if let imageError = imageError
+                    if let errorMessage = errorMessage
                     {
-                        completion(nil, imageError)
+                        completion(nil, errorMessage)
                         return
                     }
                     let bitDepth = 16
@@ -243,7 +243,7 @@ extension UIImage
                     }
                     if reader.status == AVAssetReaderStatus.failed || reader.status == AVAssetReaderStatus.unknown
                     {
-                        completion(nil, UIImageErrors.assetReaderFailure(errorMessage: "AVAssetReader has failed to read the data while making a Graph File in \(#function).  System error is \(reader.error?.localizedDescription)"))
+                        completion(nil, "AVAssetReader has failed to read the data while making a Graph File in \(#function).  System error is \(reader.error?.localizedDescription)")
                         return
                     }
                     if reader.status == AVAssetReaderStatus.completed
@@ -269,7 +269,7 @@ extension UIImage
                 }
                 catch let err
                 {
-                    completion(nil, UIImageErrors.osLevelError(errorMessage: "Failed to spin up an Asset Reader. System error is: \(err.localizedDescription)"))
+                    completion(nil, "Failed to spin up an Asset Reader. System error is: \(err.localizedDescription)")
                     return
                 }
         })
@@ -277,7 +277,7 @@ extension UIImage
     }
     
     //MARK: samples has (-) values in it.
-    class func drawAudioImageGraph(withSamples samples: Array<Int16>, songMaxSignal: Int, sampleCount: Int, channelCount: UInt32, pixelsPerSecond: UInt, songLengthInSecs: TimeInterval, maxImageHeight: Int) -> (UIImage?, UIImageErrors?)
+    class func drawAudioImageGraph(withSamples samples: Array<Int16>, songMaxSignal: Int, sampleCount: Int, channelCount: UInt32, pixelsPerSecond: UInt, songLengthInSecs: TimeInterval, maxImageHeight: Int) -> (UIImage?, String?)
     {
         // So we will graph 2 channels where each wave has an upper and lower region with a space in the center and insets on the top and bottom:
         //
@@ -294,7 +294,7 @@ extension UIImage
         guard let printingFont: UIFont = UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize))
             else
         {
-            return (nil, UIImageErrors.fontNotLoaded(errorMessage: "Unable to load font \(UIImage.kFontName) in \(#function)!"))
+            return (nil, "Unable to load font \(UIImage.kFontName) in \(#function)!")
         }
         
         let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize)) as Any]
@@ -335,7 +335,7 @@ extension UIImage
         guard let context: CGContext = UIGraphicsGetCurrentContext()
             else
         {
-            return (nil, UIImageErrors.graphicsContextMissing(errorMessage: "Failed to obtain a Graphics Context!"))
+            return (nil, "Failed to obtain a Graphics Context!")
         }
         
         context.setAlpha(1)
@@ -501,7 +501,7 @@ extension UIImage
             
             return (newImage, nil)
         }
-        return (nil, UIImageErrors.imageNotObtainedFromContext)
+        return (nil, "Unable to obtain Image from Graphics Context")
     }
     
     class func printUnitFrom(refPoint: CGPoint, itsValue: Int, inContext: CGContext, usingUnit: String?, andAddedUnit: Int, andFont: UIFont) -> Void

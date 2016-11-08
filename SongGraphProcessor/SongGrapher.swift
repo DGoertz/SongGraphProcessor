@@ -35,7 +35,7 @@ class SongGrapher : UIViewController
                             {
                                 if let imageError = imageError
                                 {
-                                    CentralCode.showError(message: imageError.localizedDescription, title: "Song Graph Error", onView: strongSelf)
+                                    CentralCode.showError(message: imageError, title: "Song Graph Error", onView: strongSelf)
                                     return
                                 }
                                 else
