@@ -102,6 +102,8 @@ extension UIImage
     
     class func image(fromSong: MPMediaItem, graphMaxWidth: Int, graphMaxHeight: Int, completion: @escaping (UIImage?, UIImageErrors?) -> Void) -> Void
     {
+        // Need to do a quick check to see whether we already have the Image or
+        // what is known as the Song Graph File.
         guard let audioCacheFile = BundleWrapper.getImportCacheFileURL(forSong: fromSong)
             else
         {
@@ -249,10 +251,7 @@ extension UIImage
                         // We have compressed the data via whatever algorithm we have chosen above.
                         // Bottom line is that we will be drawing the graph from the samples that now exist in the fullSongData.
                         //  Therefore it is important to get this new sample count so that drawing to the Image can accurate.
-                        //let modernDataWrapper: Data = Data(referencing: fullSongData)
-                        // ***
-                        
-                        var samplesToGraph = [Int16](repeating: 0, count:fullSongData.length)
+                        var samplesToGraph: [Int16] = [Int16](repeating: 0, count:fullSongData.length)
                         fullSongData.getBytes(&samplesToGraph, length: fullSongData.length * MemoryLayout<Int16>.size)
                         let (songGraphImage, error) = UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: pixelsPerSecond, songLengthInSecs: songLengthInSecs,maxImageHeight: graphMaxHeight)
                         if let error = error

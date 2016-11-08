@@ -57,14 +57,6 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
         }
     }
     
-    func run(codeInMain: @escaping ()-> Void) -> Void
-    {
-        DispatchQueue.main.async
-            {
-                codeInMain()
-        }
-    }
-    
     // MARK: Media Picker Methods.
     func displayMediaPicker()
     {
@@ -115,15 +107,17 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                 {
                                     if FileManager.default.fileExists(atPath: importCacheFileURL.path)
                                     {
-                                        strongSelf.run(codeInMain:
+                                        CentralCode.runInMainThread(code:
                                             {
+                                                
                                                 strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
                                         })
                                     }
                                     else
                                     {
-                                        strongSelf.run(codeInMain:
+                                        CentralCode.runInMainThread(code:
                                             {
+                                                
                                                 CentralCode.showError(message: "Import Status of music file is good but file was not found after copy?", title: "Import Error", onView: strongSelf)
                                                 strongSelf.statusLabel.text = "Status good but file not found?"
                                         })
@@ -131,8 +125,8 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                 }
                                 else
                                 {
-                                    strongSelf.run(codeInMain:
-                                        {
+                                    CentralCode.runInMainThread(code: {
+                                        
                                         CentralCode.showError(message: "Import Status is not completed.  It is \(importGuy.status)", title: "Import Error", onView: strongSelf)
                                         strongSelf.statusLabel.text = "Import status is not completed.  It is \(importGuy.status)"
                                     })

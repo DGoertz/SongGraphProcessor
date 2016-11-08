@@ -19,4 +19,12 @@ class CentralCode
         errorBox.addAction(cancelButton)
         onView.present(errorBox, animated: true, completion: nil)
     }
+    
+    class func runInMainThread(code: @escaping ()-> Void) -> Void
+    {
+        DispatchQueue.main.async
+            {
+                code()
+        }
+    }
 }
