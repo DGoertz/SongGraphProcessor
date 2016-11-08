@@ -50,9 +50,9 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
     // MARK: View Transition Methods.
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
-        if segue.identifier == SongChooser.segueToSongGrapher, let nextVC = segue.destination as? SongGrapher, let chosenSong = chosenSong
+        if segue.identifier == SongChooser.segueToSongGrapher, let nextVC = segue.destination as? SongGrapher, let chosenSong = self.chosenSong
         {
-            nextVC.songChosen = chosenSong
+            nextVC.songChosen = self.chosenSong
             nextVC.title = (chosenSong.title != nil) ? chosenSong.title : "Unknown"
         }
     }
@@ -71,6 +71,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
         self.mediaPicker = MPMediaPickerController(mediaTypes: MPMediaType.music)
         self.mediaPicker!.delegate = self
         self.mediaPicker!.allowsPickingMultipleItems = false
+        self.mediaPicker!.showsCloudItems = false
         self.navigationController?.present(self.mediaPicker!, animated: true, completion: nil)
     }
     
@@ -83,62 +84,68 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
         guard let importCacheFileURL = BundleWrapper.getImportCacheFileURL(forSong: self.chosenSong!)
             else
         {
-            print("Failed to aquire a path for the temporary Import File!")
             mediaPicker.dismiss(animated: true, completion: nil)
+            self.statusLabel.text = "Failed to aquire a path for the temporary Import File!"
             return
         }
         guard let inputURL = self.chosenSong!.assetURL
             else
         {
-            print("Failed to find a path to the chosen music File!")
             mediaPicker.dismiss(animated: true, completion: nil)
+            self.statusLabel.text = "Failed to find a path to the chosen music File!"
             return
         }
         
-        let importGuy = MediaImport()
-        do
-        {
-            // Get rid of old Cache and Graph files if they exist.
-            // Fix this later to only produce the Graph if necessary.
-            BundleWrapper.removeAudioGraphFileIfNeeded(forSong: self.chosenSong!)
-            BundleWrapper.removeImportCacheFileIfNeeded(forSong: self.chosenSong!)
-            try importGuy.doImport(inputURL, output: importCacheFileURL, completionCode:
+            if let hasChosenASong = self.chosenSong
+            {
+                if BundleWrapper.doesImportCacheFileExist(forSong: hasChosenASong)
                 {
-                    [weak self] (importGuy) in
-                    if let strongSelf = self
+                    self.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
+                }
+                else
+                {
+                    do
                     {
-                        if importGuy.status == AVAssetExportSessionStatus.completed
-                        {
-                            if FileManager.default.fileExists(atPath: importCacheFileURL.path)
+                        let importGuy = MediaImport()
+                        try importGuy.doImport(inputURL, output: importCacheFileURL, completionCode:
                             {
-                                strongSelf.run(codeInMain:
+                                [weak self] (importGuy) in
+                                if let strongSelf = self
+                                {
+                                    if importGuy.status == AVAssetExportSessionStatus.completed
                                     {
-                                        strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
-                                        strongSelf.statusLabel.text = "This worked! The file was imported properly to \(importCacheFileURL.absoluteString)!"
-                                })
-                            }
-                            else
-                            {
-                                strongSelf.run(codeInMain:
+                                        if FileManager.default.fileExists(atPath: importCacheFileURL.path)
+                                        {
+                                            strongSelf.run(codeInMain:
+                                                {
+                                                    strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
+                                                    strongSelf.statusLabel.text = "This worked! The file was imported properly to \(importCacheFileURL.absoluteString)!"
+                                            })
+                                        }
+                                        else
+                                        {
+                                            strongSelf.run(codeInMain:
+                                                {
+                                                    strongSelf.statusLabel.text = "Status good but file not found?"
+                                            })
+                                        }
+                                    }
+                                    else
                                     {
-                                        strongSelf.statusLabel.text = "Status good but file not found?"
-                                })
-                            }
-                        }
-                        else
-                        {
-                            strongSelf.run(codeInMain:                                {
-                                strongSelf.statusLabel.text = "Import status is not completed.  It is \(importGuy.status)"
-                            })
-                        }
+                                        strongSelf.run(codeInMain:                                {
+                                            strongSelf.statusLabel.text = "Import status is not completed.  It is \(importGuy.status)"
+                                        })
+                                    }
+                                }
+                        })
                     }
-            })
-        }
-        catch
-        {
-            print("Import failed!")
-        }
-        
+                    catch
+                    {
+                        print("Import failed!")
+                    }
+                    
+                }
+            }        
         mediaPicker.dismiss(animated: true, completion: nil)
     }
     
