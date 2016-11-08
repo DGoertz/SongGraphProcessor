@@ -33,7 +33,6 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        
     }
     
     override func viewWillAppear(_ animated: Bool)
@@ -43,8 +42,8 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
     
     override func didReceiveMemoryWarning()
     {
+        print("Memory Issue!")
         super.didReceiveMemoryWarning()
-        
     }
     
     // MARK: View Transition Methods.
@@ -64,14 +63,20 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
         self.mediaPicker!.delegate = self
         self.mediaPicker!.allowsPickingMultipleItems = false
         self.mediaPicker!.showsCloudItems = false
-        self.navigationController?.present(self.mediaPicker!, animated: true, completion: nil)
+        if let hasNavController = self.navigationController
+        {
+            hasNavController.present(self.mediaPicker!, animated: true, completion: nil)
+        }
+        else
+        {
+            CentralCode.showError(message: "The Navigation Controller is invalid!  BUILD AGAIN!", title: "Internal Error", onView: self)
+        }
     }
     
     // MARK: MPMediaPickerControllerDelegate Functions.
     func mediaPicker(_ mediaPicker: MPMediaPickerController, didPickMediaItems mediaItemCollection: MPMediaItemCollection)
     {
         self.chosenSong = mediaItemCollection.items[0]
-        mediaPicker.dismiss(animated: true, completion: nil)
         
         guard let importCacheFileURL = BundleWrapper.getImportCacheFileURL(forSong: self.chosenSong!)
             else
@@ -146,7 +151,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
     
     func mediaPickerDidCancel(_ mediaPicker: MPMediaPickerController)
     {
-        print("Song pick was canceled")
+        print("Song picker was canceled")
     }
 }
 

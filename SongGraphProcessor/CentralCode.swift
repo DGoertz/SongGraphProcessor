@@ -14,9 +14,7 @@ class CentralCode
     {
         let errorBox: UIAlertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let okButton: UIAlertAction = UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: nil)
-        let cancelButton: UIAlertAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: nil)
         errorBox.addAction(okButton)
-        errorBox.addAction(cancelButton)
         onView.present(errorBox, animated: true, completion: nil)
     }
     
@@ -26,5 +24,22 @@ class CentralCode
             {
                 code()
         }
+    }
+    
+    class func startSpinner(onView: UIView) -> UIActivityIndicatorView
+    {
+        print("Spinner Starting!")
+        let spinner = UIActivityIndicatorView(activityIndicatorStyle: .white)
+        spinner.bounds = CGRect(x: 0, y: 0, width: 100, height: 100)
+        onView.addSubview(spinner)
+        spinner.startAnimating()
+        return spinner
+    }
+    
+    class func stopSpinner(_ theSpinner: UIActivityIndicatorView)
+    {
+        print("Spinner Stopping!")
+        theSpinner.stopAnimating()
+        theSpinner.removeFromSuperview()
     }
 }

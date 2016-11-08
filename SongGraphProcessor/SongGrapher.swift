@@ -15,12 +15,31 @@ class SongGrapher : UIViewController
     
     var songImage: UIImage?
     var songChosen: MPMediaItem?
+    var spinner: UIActivityIndicatorView!
     
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
         if let songChosen = songChosen
         {
+            self.spinner = CentralCode.startSpinner(onView: self.view)
+            if BundleWrapper.doesAudioGraphFileExist(forSong: songChosen)
+            {
+                if let songGraphURL = BundleWrapper.getAudioGraphFileURL(forSong: songChosen)
+                {
+                    if let songImage: UIImage = UIImage(contentsOfFile:
+                        songGraphURL.path)
+                    {
+                        self.putUpSongGraph(graph: songImage)
+                        return
+                    }
+                    else
+                    {
+                        CentralCode.showError(message: "Song Graph File could not be read!", title: "Song Graph Error", onView: self)
+                        return
+                    }
+                }
+            }
             // Assumption at this point is that the Song has been copied from the iPod
             // store to what is called the Import Cache File.
             UIImage.image(fromSong: songChosen, graphMaxWidth: Int(view.bounds.size.width * SongGrapher.sizeFactor), graphMaxHeight: Int(view.bounds.size.height), completion:
@@ -42,11 +61,8 @@ class SongGrapher : UIViewController
                                 {
                                     if let songImage = songImage
                                     {
-                                        let scrollView: UIScrollView = UIScrollView(frame: strongSelf.view.frame)
-                                        let imageView: UIImageView = UIImageView(image: songImage)
-                                        scrollView.addSubview(imageView)
-                                        scrollView.contentSize = imageView.frame.size
-                                        strongSelf.view.addSubview(scrollView)
+                                        strongSelf.putUpSongGraph(graph: songImage)
+                                        CentralCode.stopSpinner(self!.spinner)
                                         BundleWrapper.removeAudioGraphFileIfNeeded(forSong: songChosen)
                                         if let imagePath = BundleWrapper.getAudioGraphFileURL(forSong: songChosen)
                                         {
@@ -85,6 +101,7 @@ class SongGrapher : UIViewController
                     }
                     
             })
+            
         }
     }
     
@@ -92,5 +109,14 @@ class SongGrapher : UIViewController
     {
         super.didReceiveMemoryWarning()
         
+    }
+    
+    func putUpSongGraph(graph: UIImage)
+    {
+        let scrollView: UIScrollView = UIScrollView(frame: self.view.frame)
+        let imageView: UIImageView = UIImageView(image: graph)
+        scrollView.addSubview(imageView)
+        scrollView.contentSize = imageView.frame.size
+        self.view.addSubview(scrollView)
     }
 }
