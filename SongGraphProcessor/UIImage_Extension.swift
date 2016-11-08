@@ -241,8 +241,7 @@ extension UIImage
                     }
                     if reader.status == AVAssetReaderStatus.failed || reader.status == AVAssetReaderStatus.unknown
                     {
-                        // Handle ERROR condition here!
-                        print("AVAssetReader has failed to read the data while making a Graph File in \(#function).  System error is \(reader.error?.localizedDescription)")
+                        completion(nil, UIImageErrors.assetReaderFailure(errorMessage: "AVAssetReader has failed to read the data while making a Graph File in \(#function).  System error is \(reader.error?.localizedDescription)"))
                         return
                     }
                     if reader.status == AVAssetReaderStatus.completed
@@ -254,7 +253,12 @@ extension UIImage
                         let samplesToGraph = modernDataWrapper.withUnsafeBytes({
                             Array(UnsafeBufferPointer<Int16>(start: $0, count: modernDataWrapper.count * MemoryLayout<Int16>.size))
                         })
-                        if let songGraphImage = UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: pixelsPerSecond, songLengthInSecs: songLengthInSecs,maxImageHeight: graphMaxHeight)
+                        let (songGraphImage, error) = UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: pixelsPerSecond, songLengthInSecs: songLengthInSecs,maxImageHeight: graphMaxHeight)
+                        if let error = error
+                        {
+                            completion(nil, error)
+                        }
+                        else
                         {
                             completion(songGraphImage, nil)
                         }
@@ -265,7 +269,7 @@ extension UIImage
                 }
                 catch let err
                 {
-                    print("Failed to spin up an Asset Reader. System error is: \(err.localizedDescription)")
+                    completion(nil, UIImageErrors.osLevelError(errorMessage: "Failed to spin up an Asset Reader. System error is: \(err.localizedDescription)"))
                     return
                 }
         })
@@ -273,7 +277,7 @@ extension UIImage
     }
     
     //MARK: samples has (-) values in it.
-    class func drawAudioImageGraph(withSamples samples: Array<Int16>, songMaxSignal: Int, sampleCount: Int, channelCount: UInt32, pixelsPerSecond: UInt, songLengthInSecs: TimeInterval, maxImageHeight: Int) -> UIImage?
+    class func drawAudioImageGraph(withSamples samples: Array<Int16>, songMaxSignal: Int, sampleCount: Int, channelCount: UInt32, pixelsPerSecond: UInt, songLengthInSecs: TimeInterval, maxImageHeight: Int) -> (UIImage?, UIImageErrors?)
     {
         // So we will graph 2 channels where each wave has an upper and lower region with a space in the center and insets on the top and bottom:
         //
@@ -290,8 +294,7 @@ extension UIImage
         guard let printingFont: UIFont = UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize))
             else
         {
-            print("Unable to load font \(UIImage.kFontName) in \(#function)!")
-            return nil
+            return (nil, UIImageErrors.fontNotLoaded(errorMessage: "Unable to load font \(UIImage.kFontName) in \(#function)!"))
         }
         
         let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize)) as Any]
@@ -332,8 +335,7 @@ extension UIImage
         guard let context: CGContext = UIGraphicsGetCurrentContext()
             else
         {
-            print("Failed to obtain a Graphics Context!")
-            return nil
+            return (nil, UIImageErrors.graphicsContextMissing(errorMessage: "Failed to obtain a Graphics Context!"))
         }
         
         context.setAlpha(1)
@@ -497,9 +499,9 @@ extension UIImage
             // Tidy up
             UIGraphicsEndImageContext()
             
-            return newImage
+            return (newImage, nil)
         }
-        return nil
+        return (nil, UIImageErrors.imageNotObtainedFromContext)
     }
     
     class func printUnitFrom(refPoint: CGPoint, itsValue: Int, inContext: CGContext, usingUnit: String?, andAddedUnit: Int, andFont: UIFont) -> Void

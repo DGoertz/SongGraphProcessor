@@ -16,4 +16,5 @@ enum UIImageErrors: Error
     case fontNotLoaded(errorMessage: String)
     case graphicsContextMissing(errorMessage: String)
     case faileToGetImageFromContext
+    case imageNotObtainedFromContext
 }
