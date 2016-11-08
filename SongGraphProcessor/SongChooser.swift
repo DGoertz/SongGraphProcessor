@@ -85,6 +85,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
             else
         {
             mediaPicker.dismiss(animated: true, completion: nil)
+            self.putUpError(message: "Failed to aquire a path for the temporary Import File!", title: "Song Choice Error")
             self.statusLabel.text = "Failed to aquire a path for the temporary Import File!"
             return
         }
@@ -92,6 +93,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
             else
         {
             mediaPicker.dismiss(animated: true, completion: nil)
+            self.putUpError(message: "Failed to find a path to the chosen music File!", title: "Song Choice Error")
             self.statusLabel.text = "Failed to find a path to the chosen music File!"
             return
         }
@@ -119,7 +121,6 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                             strongSelf.run(codeInMain:
                                                 {
                                                     strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
-                                                    strongSelf.statusLabel.text = "This worked! The file was imported properly to \(importCacheFileURL.absoluteString)!"
                                             })
                                         }
                                         else
@@ -139,9 +140,9 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                 }
                         })
                     }
-                    catch
+                    catch let error
                     {
-                        print("Import failed!")
+                        self.putUpError(message: error.localizedDescription, title: "Song Choice Error")
                     }
                     
                 }
@@ -152,6 +153,17 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
     func mediaPickerDidCancel(_ mediaPicker: MPMediaPickerController)
     {
         print("Song pick was canceled")
+    }
+    
+    // MARK: Utility Methods.
+    func putUpError(message: String, title: String)
+    {
+        let errorBox: UIAlertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let okButton: UIAlertAction = UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: nil)
+        let cancelButton: UIAlertAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: nil)
+        errorBox.addAction(okButton)
+        errorBox.addAction(cancelButton)
+        self.present(errorBox, animated: true, completion: nil)
     }
 }
 

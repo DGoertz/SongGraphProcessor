@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		884E21AB1DD12D9E006E6049 /* ImageErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884E21AA1DD12D9E006E6049 /* ImageErrors.swift */; };
 		88FA5B191DCD3862007E7A0E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B181DCD3862007E7A0E /* AppDelegate.swift */; };
 		88FA5B1B1DCD3862007E7A0E /* SongChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B1A1DCD3862007E7A0E /* SongChooser.swift */; };
 		88FA5B1E1DCD3862007E7A0E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 88FA5B1C1DCD3862007E7A0E /* Main.storyboard */; };
@@ -23,6 +24,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		884E21AA1DD12D9E006E6049 /* ImageErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageErrors.swift; sourceTree = "<group>"; };
 		88FA5B151DCD3862007E7A0E /* SongGraphProcessor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SongGraphProcessor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		88FA5B181DCD3862007E7A0E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		88FA5B1A1DCD3862007E7A0E /* SongChooser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongChooser.swift; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 			children = (
 				88FA5B351DCD3AA0007E7A0E /* MediaImport.swift */,
 				88FA5B391DCD3F37007E7A0E /* ImportErrors.swift */,
+				884E21AA1DD12D9E006E6049 /* ImageErrors.swift */,
 				88FA5B331DCD3A84007E7A0E /* UIImage_Extension.swift */,
 			);
 			name = SongGraphing;
@@ -224,6 +227,7 @@
 				88FA5B211DCD3862007E7A0E /* SongGraphProcessor.xcdatamodeld in Sources */,
 				88FA5B191DCD3862007E7A0E /* AppDelegate.swift in Sources */,
 				88FA5B3A1DCD3F37007E7A0E /* ImportErrors.swift in Sources */,
+				884E21AB1DD12D9E006E6049 /* ImageErrors.swift in Sources */,
 				88FA5B301DCD3A43007E7A0E /* BundleWrapper.swift in Sources */,
 				88FA5B381DCD3AB4007E7A0E /* MediaWrapper.swift in Sources */,
 				88FA5B341DCD3A84007E7A0E /* UIImage_Extension.swift in Sources */,

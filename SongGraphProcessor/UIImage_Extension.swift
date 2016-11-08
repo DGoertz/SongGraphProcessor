@@ -72,13 +72,13 @@ extension UIImage
 
 extension UIImage
 {
-    class func getTimingInfo(fromSong: MPMediaItem, completion: @escaping (CMTime?) -> Void ) -> Void
+    class func getTimingInfo(fromSong: MPMediaItem, completion: @escaping (CMTime?, UIImageErrors?) -> Void ) -> Void
     {
         guard let audioCacheFile = BundleWrapper.getImportCacheFileURL(forSong: fromSong)
             else
         {
-            print("In __FUNC__ and unable to obtain the location of the Import Audio Cache file!")
-            return completion(nil)
+            completion(nil, UIImageErrors.importCacheFileNotFound(errorMessage: "In __FUNC__ and unable to obtain the location of the Import Audio Cache file!"))
+            return
         }
         let assetOptions: [String : Any] = [AVURLAssetPreferPreciseDurationAndTimingKey : NSNumber(value: true)]
         let avAsset = AVURLAsset(url: audioCacheFile, options: assetOptions)
@@ -93,29 +93,33 @@ extension UIImage
                 switch status
                 {
                 case .loaded:
-                    completion(avAsset.duration)
+                    completion(avAsset.duration, nil)
                 case .cancelled, .failed, .loading, .unknown:
-                    print("Tried to load the attribute [duration] in \(#function) and it failed with the error: \(error?.localizedDescription)")
-                    completion(nil)
+                    completion(nil, UIImageErrors.importCacheFileNotFound(errorMessage: "Tried to load the attribute [duration] in \(#function) and it failed with the error: \(error?.localizedDescription)"))
                 }
         })
     }
     
-    class func image(fromSong: MPMediaItem, graphMaxWidth: Int, graphMaxHeight: Int, completion: @escaping (UIImage) -> Void) -> Void
+    class func image(fromSong: MPMediaItem, graphMaxWidth: Int, graphMaxHeight: Int, completion: @escaping (UIImage?, UIImageErrors?) -> Void) -> Void
     {
         guard let audioCacheFile = BundleWrapper.getImportCacheFileURL(forSong: fromSong)
             else
         {
-            print("In \(#function) and unable to obtain the location of the Import Audio Cache file!")
+            completion(nil, UIImageErrors.importCacheFileNotFound(errorMessage: "In \(#function) and unable to obtain the location of the Import Audio Cache file!"))
             return
         }
         let avAsset = AVURLAsset(url: audioCacheFile, options: nil)
         UIImage.getTimingInfo(fromSong: fromSong, completion:
             {
-                (accurateDuration) in
+                (accurateDuration, imageError) in
                 
                 do
                 {
+                    if let imageError = imageError
+                    {
+                        completion(nil, imageError)
+                        return
+                    }
                     let bitDepth = 16
                     let reader: AVAssetReader = try AVAssetReader(asset: avAsset)
                     let songTrack: AVAssetTrack = avAsset.tracks[0]
@@ -176,7 +180,7 @@ extension UIImage
                         
                         // Copy their data into our buffer.
                         var data = Data(capacity: length)
-                        data.withUnsafeMutableBytes{
+                        data.withUnsafeMutableBytes {
                             (bytes: UnsafeMutablePointer<Int16>)
                             
                             in
@@ -252,7 +256,7 @@ extension UIImage
                         })
                         if let songGraphImage = UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: pixelsPerSecond, songLengthInSecs: songLengthInSecs,maxImageHeight: graphMaxHeight)
                         {
-                            completion(songGraphImage)
+                            completion(songGraphImage, nil)
                         }
                         return
                         // Need to write pixelsPerSecond to the parent Song!
