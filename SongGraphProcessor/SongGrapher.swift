@@ -49,6 +49,18 @@ class SongGrapher : UIViewController
                     {
                         CentralCode.runInMainThread(code:
                             {
+                                if BundleWrapper.doesImportCacheFileExist(forSong: songChosen)
+                                {
+                                    let importCacheFileURL: URL = BundleWrapper.getImportCacheFileURL(forSong: songChosen)!
+                                    do
+                                    {
+                                        try FileManager.default.removeItem(at: importCacheFileURL)
+                                    }
+                                    catch let error
+                                    {
+                                        CentralCode.showError(message: "Failed to clean up Import Cache File: \(importCacheFileURL).  OS error is: \(error.localizedDescription)", title: "File Deletion Error", onView: strongSelf)
+                                    }
+                                }
                                 if let imageError = imageError
                                 {
                                     CentralCode.showError(message: imageError, title: "Song Graph Error", onView: strongSelf)

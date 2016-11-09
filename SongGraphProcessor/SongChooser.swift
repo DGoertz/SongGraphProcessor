@@ -103,7 +103,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
             // Preceding code guarntees that the assetURL is not nil!
             let inputURL: URL = hasChosenASong.assetURL!
             mediaPicker.dismiss(animated: true, completion: nil)
-            if BundleWrapper.doesAudioGraphFileExist(forSong: hasChosenASong) || BundleWrapper.doesImportCacheFileExist(forSong: hasChosenASong)
+            if BundleWrapper.doesAudioGraphFileExist(forSong: hasChosenASong)
             {
                 self.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
             }
