@@ -33,11 +33,6 @@ class SongGrapher : UIViewController
                         self.putUpSongGraph(graph: songImage)
                         return
                     }
-                    else
-                    {
-                        CentralCode.showError(message: "Song Graph File could not be read!", title: "Song Graph Error", onView: self)
-                        return
-                    }
                 }
             }
             // Assumption at this point is that the Song has been copied from the iPod

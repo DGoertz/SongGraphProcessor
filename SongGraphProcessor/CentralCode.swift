@@ -29,8 +29,8 @@ class CentralCode
     class func startSpinner(onView: UIView) -> UIActivityIndicatorView
     {
         print("Spinner Starting!")
-        let spinner = UIActivityIndicatorView(activityIndicatorStyle: .white)
-        spinner.bounds = CGRect(x: 0, y: 0, width: 100, height: 100)
+        let spinner = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
+        spinner.frame = CGRect(x: 100, y: 100, width: 100, height: 100)
         onView.addSubview(spinner)
         spinner.startAnimating()
         return spinner
