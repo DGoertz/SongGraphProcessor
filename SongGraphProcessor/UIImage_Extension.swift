@@ -56,14 +56,14 @@ extension UIImage
     static let kMusicPlayerIntervalTollerance: Double      = 0.17
     
     static let kSectionKey: String                   = "songHeader"
-    static let kGraphColorBackground: UIColor        = UIColor.green
-    static let kGraphColorLeftChannel: UIColor       = UIColor.blue
-    static let kGraphColorRightChannel: UIColor      = UIColor.black
-    static let kGraphColorTimeLine: UIColor          = UIColor.purple
-    static let kGraphColorTimeNumberMarkers: UIColor = UIColor.gray
-    static let kGraphColorTimeNumberLetters: UIColor = UIColor.orange
+    static let kGraphColorBackground: UIColor        = UIColor.black
+    static let kGraphColorLeftChannel: UIColor       = UIColor.red
+    static let kGraphColorRightChannel: UIColor      = UIColor.yellow
+    static let kGraphColorTimeLine: UIColor          = UIColor.green
+    static let kGraphColorTimeNumberMarkers: UIColor = UIColor.white
+    static let kGraphColorTimeNumberLetters: UIColor = UIColor.white
     
-    static let kGraphColorMarkerBase: UIColor        = UIColor.black
+    static let kGraphColorMarkerBase: UIColor        = UIColor.blue
     static let kGraphColorStartMarker: UIColor       = UIColor.red
     static let kGraphColorEndMarker: UIColor         = UIColor.red
     

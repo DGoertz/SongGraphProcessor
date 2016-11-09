@@ -28,9 +28,8 @@ class CentralCode
     
     class func startSpinner(onView: UIView) -> UIActivityIndicatorView
     {
-        print("Spinner Starting!")
         let spinner = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
-        spinner.frame = CGRect(x: 100, y: 100, width: 100, height: 100)
+        spinner.center = onView.center
         onView.addSubview(spinner)
         spinner.startAnimating()
         return spinner
@@ -38,7 +37,6 @@ class CentralCode
     
     class func stopSpinner(_ theSpinner: UIActivityIndicatorView)
     {
-        print("Spinner Stopping!")
         theSpinner.stopAnimating()
         theSpinner.removeFromSuperview()
     }

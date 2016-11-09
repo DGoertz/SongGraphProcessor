@@ -30,6 +30,8 @@ class SongGrapher : UIViewController
                     if let songImage: UIImage = UIImage(contentsOfFile:
                         songGraphURL.path)
                     {
+                        CentralCode.stopSpinner(self.spinner)
+                        self.spinner = nil
                         self.putUpSongGraph(graph: songImage)
                         return
                     }
@@ -57,7 +59,8 @@ class SongGrapher : UIViewController
                                     if let songImage = songImage
                                     {
                                         strongSelf.putUpSongGraph(graph: songImage)
-                                        CentralCode.stopSpinner(self!.spinner)
+                                        CentralCode.stopSpinner(strongSelf.spinner)
+                                        strongSelf.spinner = nil
                                         BundleWrapper.removeAudioGraphFileIfNeeded(forSong: songChosen)
                                         if let imagePath = BundleWrapper.getAudioGraphFileURL(forSong: songChosen)
                                         {

@@ -27,10 +27,12 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tcl-97-gMs">
-                                <rect key="frame" x="20" y="84" width="120" height="30"/>
+                                <rect key="frame" x="20" y="84" width="202" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" name="RingbearerMedium" family="Ringbearer" pointSize="17"/>
-                                <state key="normal" title="Find Song"/>
+                                <fontDescription key="fontDescription" name="RingbearerMedium" family="Ringbearer" pointSize="27"/>
+                                <state key="normal" title="Find Song">
+                                    <color key="titleColor" red="1" green="1" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
                                 <connections>
                                     <action selector="choosePressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="TP0-Iw-qE4"/>
                                 </connections>
@@ -39,11 +41,11 @@
                                 <rect key="frame" x="20" y="175" width="627" height="61"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="RingbearerMedium" family="Ringbearer" pointSize="17"/>
-                                <nil key="textColor"/>
+                                <color key="textColor" red="1" green="1" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
-                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" red="0.34850232505685885" green="0.5000528930912902" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     </view>
                     <navigationItem key="navigationItem" id="5Tq-27-8Ki"/>
                     <connections>
@@ -66,7 +68,7 @@
                     <view key="view" contentMode="scaleToFill" id="xTQ-3f-BUQ">
                         <rect key="frame" x="0.0" y="0.0" width="667" height="375"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" red="0.34850232510000001" green="0.50005289310000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="uto-pw-gaj" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -78,7 +80,7 @@
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="h8V-Zs-e9E" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="Bl3-Cz-aNm">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="Bl3-Cz-aNm">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>

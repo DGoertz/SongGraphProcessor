@@ -27,6 +27,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
     // MARK: Properties.
     var chosenSong: MPMediaItem?
     var mediaPicker: MPMediaPickerController?
+    var spinner: UIActivityIndicatorView!
     
     // MARK: View Controller Delegate Methods.
     
@@ -52,7 +53,11 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
         if segue.identifier == SongChooser.segueToSongGrapher, let nextVC = segue.destination as? SongGrapher, let chosenSong = self.chosenSong
         {
             nextVC.songChosen = self.chosenSong
-            nextVC.title = (chosenSong.title != nil) ? chosenSong.title : "Unknown"
+            let titlePart1 = (chosenSong.title != nil) ? chosenSong.title! : "Unknown"
+            let titlePart2 = (chosenSong.albumArtist !=  nil) ? chosenSong.albumArtist! : ""
+            let titlePart3 = (chosenSong.albumTitle != nil) ? chosenSong.albumTitle! : ""
+            let artistAndAlbum = "Song:\(titlePart1) - Artist:\(titlePart2) - Album:\(titlePart3)"
+            nextVC.title = "\(artistAndAlbum)"
         }
     }
     
@@ -77,27 +82,26 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
     func mediaPicker(_ mediaPicker: MPMediaPickerController, didPickMediaItems mediaItemCollection: MPMediaItemCollection)
     {
         self.chosenSong = mediaItemCollection.items[0]
-        
-        guard let importCacheFileURL = BundleWrapper.getImportCacheFileURL(forSong: self.chosenSong!)
-            else
-        {
-            mediaPicker.dismiss(animated: true, completion: nil)
-            if self.chosenSong?.hasProtectedAsset == true
-            {
-                CentralCode.showError(message: "Sorry that song is protected by DRM!", title: "Song Choice Error", onView: self)
-                self.statusLabel.text = "Sorry that song is protected by DRM!"
-            }
-            else
-            {
-                CentralCode.showError(message: "Failed to aquire a path for the temporary Import File!  Note: This file is not DRM protected so who knows why?", title: "Song Choice Error", onView: self)
-                self.statusLabel.text = "Failed to aquire a path for the temporary Import File!"
-            }
-            return
-        }
-        // Preceding code guarntees that the assetURL is not nil!
-        let inputURL: URL = self.chosenSong!.assetURL!
         if let hasChosenASong = self.chosenSong
         {
+            guard let importCacheFileURL = BundleWrapper.getImportCacheFileURL(forSong: hasChosenASong)
+                else
+            {
+                mediaPicker.dismiss(animated: true, completion: nil)
+                if hasChosenASong.hasProtectedAsset == true
+                {
+                    CentralCode.showError(message: "Sorry that song is protected by DRM!", title: "Song Choice Error", onView: self)
+                    self.statusLabel.text = "Sorry that song is protected by DRM!"
+                }
+                else
+                {
+                    CentralCode.showError(message: "Failed to aquire a path for the temporary Import File!  Note: This file is not DRM protected so who knows why?", title: "Song Choice Error", onView: self)
+                    self.statusLabel.text = "Failed to aquire a path for the temporary Import File!"
+                }
+                return
+            }
+            // Preceding code guarntees that the assetURL is not nil!
+            let inputURL: URL = hasChosenASong.assetURL!
             mediaPicker.dismiss(animated: true, completion: nil)
             if BundleWrapper.doesImportCacheFileExist(forSong: hasChosenASong)
             {
@@ -107,6 +111,8 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
             {
                 do
                 {
+                    self.spinner = CentralCode.startSpinner(onView: self.view)
+                    self.statusLabel.text = "Importing Song"
                     let importGuy = MediaImport()
                     try importGuy.doImport(inputURL, output: importCacheFileURL, completionCode:
                         {
@@ -119,12 +125,15 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                     {
                                         CentralCode.runInMainThread(code:
                                             {
-                                                
+                                                CentralCode.stopSpinner(strongSelf.spinner)
+                                                self?.statusLabel.text = ""
                                                 strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
                                         })
                                     }
                                     else
                                     {
+                                        CentralCode.stopSpinner(strongSelf.spinner)
+                                        self?.statusLabel.text = ""
                                         CentralCode.runInMainThread(code:
                                             {
                                                 
@@ -135,6 +144,8 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                 }
                                 else
                                 {
+                                    CentralCode.stopSpinner(strongSelf.spinner)
+                                    self?.statusLabel.text = ""
                                     CentralCode.runInMainThread(code:
                                         {
                                             switch importGuy.status
