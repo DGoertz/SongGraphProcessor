@@ -8,6 +8,8 @@
 
 import Foundation
 import UIKit
+import CoreData
+
 class CentralCode
 {
     class func showError(message: String, title: String, onView: UIViewController)
@@ -39,5 +41,14 @@ class CentralCode
     {
         theSpinner.stopAnimating()
         theSpinner.removeFromSuperview()
+    }
+    
+    class func getDBContext() -> NSManagedObjectContext
+    {
+        guard let myApp = (UIApplication.shared.delegate) as? AppDelegate else {
+            print("Failed to obtain DBContext")
+            abort()
+        }
+        return myApp.persistentContainer.viewContext
     }
 }

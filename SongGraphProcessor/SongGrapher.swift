@@ -31,7 +31,7 @@ class SongGrapher : UIViewController
                         songGraphURL.path)
                     {
                         CentralCode.stopSpinner(self.spinner)
-                        self.spinner = nil
+                        //self.spinner = nil
                         self.putUpSongGraph(graph: songImage)
                         return
                     }
@@ -72,7 +72,7 @@ class SongGrapher : UIViewController
                                     {
                                         strongSelf.putUpSongGraph(graph: songImage)
                                         CentralCode.stopSpinner(strongSelf.spinner)
-                                        strongSelf.spinner = nil
+                                        //strongSelf.spinner = nil
                                         BundleWrapper.removeAudioGraphFileIfNeeded(forSong: songChosen)
                                         if let imagePath = BundleWrapper.getAudioGraphFileURL(forSong: songChosen)
                                         {
