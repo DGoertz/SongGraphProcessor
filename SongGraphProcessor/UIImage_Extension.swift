@@ -11,6 +11,7 @@ import UIKit
 import MediaPlayer
 import CoreText
 
+// MARK: Song Graphing Constants.
 extension UIImage
 {
     // MARK: Constants.
@@ -70,6 +71,7 @@ extension UIImage
     static let iPracticeErrorDomain: String          = "iPracticeErrorDomain"
 }
 
+// MARK: Song Graphing Methods.
 extension UIImage
 {
     class func getTimingInfo(fromSong: MPMediaItem, completion: @escaping (CMTime?, String?) -> Void ) -> Void
@@ -263,8 +265,6 @@ extension UIImage
                             completion(songGraphImage, nil)
                         }
                         return
-                        // Need to write pixelsPerSecond to the parent Song!
-                        // parentSong.songGraphPixelsPerSecond = @(pixelsPerSecond);
                     }
                 }
                 catch let err
@@ -299,13 +299,13 @@ extension UIImage
         
         let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize)) as Any]
         
-        // From our samples of all channels involved we have kept track of the maximum 
+        // From our samples of all channels involved we have kept track of the maximum
         // wave height possible in 'songMaxSignal'.
-        // Given this we want to create a factor based on the maximum area or height that 
+        // Given this we want to create a factor based on the maximum area or height that
         // we have to work with when drawing the data.
         // Ex: Say we have 250 pixels of space on which to draw the wave above or below.
         //     We then divide this by the maximum in the sample which is say 100.
-        //     250 / 100 = 2.5.  So when we get a sample value we multiply by this factor 
+        //     250 / 100 = 2.5.  So when we get a sample value we multiply by this factor
         //     in order to make the result fit into our 250 pixel are.
         //     So that is 100 multiplied by the factor 2.5 and mark that value at 250; any
         //     value below that will map below that pixel.
@@ -455,7 +455,7 @@ extension UIImage
                 if showFiveSecondLabels == true
                 {
                     var refPoint: CGPoint = CGPoint(x: CGFloat(currentColumn), y: CGFloat(CGFloat(numberLineBottom) + CGFloat(UIImage.kTimeLineNumberLineTextMargin / 2)))
-
+                    
                     let valueInInterval: Int = currentFiveSecond % 60
                     if useFiveSecUnitsLabel == true
                     {
@@ -477,7 +477,7 @@ extension UIImage
                 context.move(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) - CGFloat(UIImage.kTimeNumberLineMinuteMarkHeight)))
                 context.addLine(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom)))
                 context.strokePath()
-
+                
                 var refPoint: CGPoint = CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) + CGFloat(UIImage.kTimeLineNumberLineTextMargin / 2))
                 
                 // onMinuteBoundary will be true at the very start so we have to detect
@@ -520,7 +520,7 @@ extension UIImage
             let textSize: CGSize = (minuteStr! as NSString).size(attributes: fontAttributes)
             
             let newRefPoint: CGPoint = CGPoint(x: refPoint.x, y: refPoint.y + textSize.height)
-
+            
             if let usingUnit = usingUnit
             {
                 minuteStr = "\(itsValue) \(usingUnit)"
@@ -568,5 +568,25 @@ extension UIImage
         valueToBePrinted.draw(at: textPoint, withAttributes: fontAttributes)
         
         inContext.restoreGState()
+    }
+}
+
+// MARK: Handy Factories.
+extension UIImage
+{
+    func resize(to dimension: Int) -> UIImage?
+    {
+        let scalerW: CGFloat = CGFloat(dimension) / self.size.width
+        let scalerH: CGFloat = CGFloat(dimension) / self.size.height
+        let finalScaler = (scalerW < scalerH) ? scalerW : scalerH
+        let newSize: CGSize = CGSize(width: self.size.width * finalScaler, height: self.size.height * finalScaler)
+        UIGraphicsBeginImageContext(newSize)
+        let newRect: CGRect = CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height)
+        self.draw(in: newRect)
+        if let newImage: UIImage = UIGraphicsGetImageFromCurrentImageContext()
+        {
+            return newImage
+        }
+        return nil
     }
 }

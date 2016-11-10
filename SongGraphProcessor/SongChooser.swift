@@ -126,7 +126,6 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                         CentralCode.runInMainThread(code:
                                             {
                                                 CentralCode.stopSpinner(strongSelf.spinner)
-                                                //strongSelf.spinner = nil
                                                 self?.statusLabel.text = ""
                                                 strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
                                         })
@@ -134,7 +133,6 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                     else
                                     {
                                         CentralCode.stopSpinner(strongSelf.spinner)
-                                        //strongSelf.spinner = nil
                                         self?.statusLabel.text = ""
                                         CentralCode.runInMainThread(code:
                                             {
@@ -147,7 +145,6 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                 else
                                 {
                                     CentralCode.stopSpinner(strongSelf.spinner)
-                                    //strongSelf.spinner = nil
                                     self?.statusLabel.text = ""
                                     CentralCode.runInMainThread(code:
                                         {
@@ -176,7 +173,6 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                     if self.spinner != nil
                     {
                         CentralCode.stopSpinner(self.spinner)
-                        //self.spinner = nil
                     }
                     CentralCode.showError(message: error.localizedDescription, title: "Song Choice Error", onView: self)
                 }

@@ -8,6 +8,7 @@
 
 import UIKit
 import MediaPlayer
+import CoreData
 
 class SongGrapher : UIViewController
 {
@@ -20,6 +21,20 @@ class SongGrapher : UIViewController
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
+        
+        let context: NSManagedObjectContext = CentralCode.getDBContext()
+        if let songs = Song.listSongs(inContext: context)
+        {
+            for song in songs
+            {
+                print("Song Name: \(song.name)")
+            }
+        }
+        else
+        {
+            print("No Songs in DB yet!")
+        }
+        
         if let songChosen = songChosen
         {
             self.spinner = CentralCode.startSpinner(onView: self.view)
@@ -31,7 +46,6 @@ class SongGrapher : UIViewController
                         songGraphURL.path)
                     {
                         CentralCode.stopSpinner(self.spinner)
-                        //self.spinner = nil
                         self.putUpSongGraph(graph: songImage)
                         return
                     }
@@ -72,7 +86,6 @@ class SongGrapher : UIViewController
                                     {
                                         strongSelf.putUpSongGraph(graph: songImage)
                                         CentralCode.stopSpinner(strongSelf.spinner)
-                                        //strongSelf.spinner = nil
                                         BundleWrapper.removeAudioGraphFileIfNeeded(forSong: songChosen)
                                         if let imagePath = BundleWrapper.getAudioGraphFileURL(forSong: songChosen)
                                         {
@@ -80,11 +93,16 @@ class SongGrapher : UIViewController
                                             {
                                                 do
                                                 {
+                                                    if !Song.doesSongExist(inContext: context, mpItem: songChosen)
+                                                    {
+                                                        Song.addSong(toContext: context, mpItem: songChosen, graph: pngRepresentation)
+                                                        try context.save()
+                                                    }
                                                     try pngRepresentation.write(to: imagePath)
                                                 }
                                                 catch let error
                                                 {
-                                                    CentralCode.showError(message: "Failed to write out the  Song Graph Image to a File! OS level error is: \(error.localizedDescription)", title: "Song Graph Error", onView: strongSelf)
+                                                    CentralCode.showError(message: "Failed to write out the Song Graph Image to a File! OS level error is: \(error.localizedDescription)", title: "Song Graph Error", onView: strongSelf)
                                                     return
                                                 }
                                             }
