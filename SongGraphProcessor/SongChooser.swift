@@ -104,13 +104,13 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
             let inputURL: URL = hasChosenASong.assetURL!
             mediaPicker.dismiss(animated: true, completion: nil)
             let context = CentralCode.getDBContext()
-            if try Song.doesSongExist(inContext: context, mpItem: hasChosenASong)
+            do
             {
-                self.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
-            }
-            else
-            {
-                do
+                if try Song.doesSongExist(inContext: context, mpItem: hasChosenASong)
+                {
+                    self.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
+                }
+                else
                 {
                     self.spinner = CentralCode.startSpinner(onView: self.view)
                     self.statusLabel.text = "Importing Song"
@@ -168,16 +168,18 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                 }
                             }
                     })
-                }
-                catch let error
-                {
-                    if self.spinner != nil
-                    {
-                        CentralCode.stopSpinner(self.spinner)
-                    }
-                    CentralCode.showError(message: error.localizedDescription, title: "Song Choice Error", onView: self)
+                    
                 }
             }
+            catch let error
+            {
+                if self.spinner != nil
+                {
+                    CentralCode.stopSpinner(self.spinner)
+                }
+                CentralCode.showError(message: error.localizedDescription, title: "Song Choice Error", onView: self)
+            }
+            
         }
     }
     
