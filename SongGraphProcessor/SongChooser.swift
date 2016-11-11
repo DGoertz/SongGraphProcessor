@@ -104,7 +104,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
             let inputURL: URL = hasChosenASong.assetURL!
             mediaPicker.dismiss(animated: true, completion: nil)
             let context = CentralCode.getDBContext()
-            if Song.doesSongExist(inContext: context, mpItem: hasChosenASong)
+            if try Song.doesSongExist(inContext: context, mpItem: hasChosenASong)
             {
                 self.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
             }

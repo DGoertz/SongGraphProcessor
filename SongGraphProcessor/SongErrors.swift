@@ -12,4 +12,5 @@ enum SongErrors: Error
 {
     case saveFailed(errorMessage: String)
     case selectFailed(errorMessage: String)
+    case idIsNotUnique
 }

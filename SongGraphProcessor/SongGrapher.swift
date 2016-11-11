@@ -25,9 +25,9 @@ class SongGrapher : UIViewController
         if let songChosen = songChosen
         {
             self.spinner = CentralCode.startSpinner(onView: self.view)
-            if Song.doesSongExist(inContext: context, mpItem: songChosen)
+            do
             {
-                do
+                if try Song.doesSongExist(inContext: context, mpItem: songChosen)
                 {
                     if let foundSong = try Song.getSong(inContext: context, mpItem: songChosen)
                     {
@@ -39,10 +39,16 @@ class SongGrapher : UIViewController
                         }
                     }
                 }
-                catch
-                {
-                    
-                }
+            }
+            catch SongErrors.idIsNotUnique
+            {
+                CentralCode.showError(message: "Two songs were found with the same ID!", title: "Song Read Error", onView: self)
+                return
+            }
+            catch let error
+            {
+                CentralCode.showError(message: "Song not found.  OS ERROR is: \(error.localizedDescription)", title: "Song Read Error", onView: self)
+                return
             }
             // Assumption at this point is that the Song has been copied from the iPod
             // store to what is called the Import Cache File.
@@ -84,7 +90,7 @@ class SongGrapher : UIViewController
                                         {
                                             do
                                             {
-                                                if !Song.doesSongExist(inContext: context, mpItem: songChosen)
+                                                if try !Song.doesSongExist(inContext: context, mpItem: songChosen)
                                                 {
                                                     Song.addSong(toContext: context, mpItem: songChosen, graph: pngRepresentation)
                                                     try context.save()
@@ -93,6 +99,16 @@ class SongGrapher : UIViewController
                                                 {
                                                     try Song.updateSongGraph(inContext: context, mpItem: songChosen, graph: pngRepresentation)
                                                 }
+                                            }
+                                            catch SongErrors.selectFailed(let errorMessage)
+                                            {
+                                                CentralCode.showError(message: errorMessage, title: "Song DB Read Error", onView: strongSelf)
+                                                return
+                                            }
+                                            catch SongErrors.idIsNotUnique
+                                            {
+                                                CentralCode.showError(message: "Two songs were found with the same ID!", title: "Song DB Read Error", onView: strongSelf)
+                                                return
                                             }
                                             catch SongErrors.saveFailed(let errorMessage)
                                             {
@@ -122,7 +138,6 @@ class SongGrapher : UIViewController
                     }
                     
             })
-            
         }
     }
     

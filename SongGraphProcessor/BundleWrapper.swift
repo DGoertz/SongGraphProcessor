@@ -74,9 +74,16 @@ class BundleWrapper
         return "Null_Title-\(forSong.persistentID).png"
     }
     
-    class func doesAudioGraphExist(inContext: NSManagedObjectContext, forSong: MPMediaItem) -> Bool
+    class func doesAudioGraphExist(inContext: NSManagedObjectContext, forSong: MPMediaItem) throws -> Bool
     {
-        return Song.doesSongExist(inContext: inContext, mpItem: forSong)
+        do
+        {            
+            return try Song.doesSongExist(inContext: inContext, mpItem: forSong)
+        }
+        catch let err
+        {
+            throw err
+        }
     }
     
     class func doesImportCacheFileExist(forSong: MPMediaItem) -> Bool

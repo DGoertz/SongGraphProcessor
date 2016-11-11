@@ -21,16 +21,16 @@ extension Song
         return request
     }
     
-    class func doesSongExist(inContext: NSManagedObjectContext, mpItem: MPMediaItem) -> Bool
+    class func doesSongExist(inContext: NSManagedObjectContext, mpItem: MPMediaItem) throws -> Bool
     {
         do
         {
             let results = try inContext.fetch(Song.buildIdRequest(forMpItem: mpItem))
             return results.count > 0
         }
-        catch
+        catch let err
         {
-            return false
+            throw SongErrors.selectFailed(errorMessage: "Fetching a Song  in \(#function)  failed.  OS Error is: \(err.localizedDescription)")
         }
     }
     
@@ -39,28 +39,32 @@ extension Song
         do
         {
             let results = try inContext.fetch(Song.buildIdRequest(forMpItem: mpItem))
-            if results.count > 0
+            if results.count > 1
+            {
+                throw SongErrors.idIsNotUnique
+            }
+            if results.count == 1
             {
                 return results[0]
             }
             return nil
         }
-        catch let error
+        catch let err
         {
-            throw SongErrors.saveFailed(errorMessage: "Save of updated Song failed.  OS Error is: \(error.localizedDescription)")
+            throw SongErrors.saveFailed(errorMessage: "Fetch of Song  in \(#function) failed.  OS Error is: \(err.localizedDescription)")
         }
     }
     
-    class func listSongs(inContext: NSManagedObjectContext) -> [Song]?
+    class func listSongs(inContext: NSManagedObjectContext) throws -> [Song]?
     {
         let request: NSFetchRequest<Song> = Song.fetchRequest()
         do
         {
             return try inContext.fetch(request)
         }
-        catch
+        catch let err
         {
-            return nil
+            throw SongErrors.selectFailed(errorMessage: "Fetching a list of Songs  in \(#function) failed.  OS Error is: \(err.localizedDescription)")
         }
     }
     
@@ -79,14 +83,18 @@ extension Song
         do
         {
             let results = try inContext.fetch(Song.buildIdRequest(forMpItem: mpItem))
-            if results.count > 0
+            if results.count > 1
+            {
+                throw SongErrors.idIsNotUnique
+            }
+            if results.count == 1
             {
                 results[0].graph = graph as NSData?
             }
         }
         catch let error
         {
-            throw SongErrors.saveFailed(errorMessage: "Selecting a Song for update failed.  OS Error is: \(error.localizedDescription)")
+            throw SongErrors.saveFailed(errorMessage: "Fetch of Song  in \(#function) failed.  OS Error is: \(error.localizedDescription)")
         }
     }
 }
