@@ -21,34 +21,27 @@ class SongGrapher : UIViewController
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
-        
         let context: NSManagedObjectContext = CentralCode.getDBContext()
-        if let songs = Song.listSongs(inContext: context)
-        {
-            for song in songs
-            {
-                print("Song Name: \(song.name)")
-            }
-        }
-        else
-        {
-            print("No Songs in DB yet!")
-        }
-        
         if let songChosen = songChosen
         {
             self.spinner = CentralCode.startSpinner(onView: self.view)
-            if BundleWrapper.doesAudioGraphFileExist(forSong: songChosen)
+            if Song.doesSongExist(inContext: context, mpItem: songChosen)
             {
-                if let songGraphURL = BundleWrapper.getAudioGraphFileURL(forSong: songChosen)
+                do
                 {
-                    if let songImage: UIImage = UIImage(contentsOfFile:
-                        songGraphURL.path)
+                    if let foundSong = try Song.getSong(inContext: context, mpItem: songChosen)
                     {
-                        CentralCode.stopSpinner(self.spinner)
-                        self.putUpSongGraph(graph: songImage)
-                        return
+                        if let songImage: UIImage = UIImage(data: foundSong.graph as! Data)
+                        {
+                            CentralCode.stopSpinner(self.spinner)
+                            self.putUpSongGraph(graph: songImage)
+                            return
+                        }
                     }
+                }
+                catch
+                {
+                    
                 }
             }
             // Assumption at this point is that the Song has been copied from the iPod
@@ -63,6 +56,7 @@ class SongGrapher : UIViewController
                     {
                         CentralCode.runInMainThread(code:
                             {
+                                // We've produced the Graph and don't need the Import file anymore.
                                 if BundleWrapper.doesImportCacheFileExist(forSong: songChosen)
                                 {
                                     let importCacheFileURL: URL = BundleWrapper.getImportCacheFileURL(forSong: songChosen)!
@@ -72,7 +66,7 @@ class SongGrapher : UIViewController
                                     }
                                     catch let error
                                     {
-                                        CentralCode.showError(message: "Failed to clean up Import Cache File: \(importCacheFileURL).  OS error is: \(error.localizedDescription)", title: "File Deletion Error", onView: strongSelf)
+                                        CentralCode.showError(message: "Failed to clean up Import Cache File after producing a Song Graph: \(importCacheFileURL).  OS error is: \(error.localizedDescription)", title: "File Deletion Error", onView: strongSelf)
                                     }
                                 }
                                 if let imageError = imageError
@@ -86,38 +80,37 @@ class SongGrapher : UIViewController
                                     {
                                         strongSelf.putUpSongGraph(graph: songImage)
                                         CentralCode.stopSpinner(strongSelf.spinner)
-                                        BundleWrapper.removeAudioGraphFileIfNeeded(forSong: songChosen)
-                                        if let imagePath = BundleWrapper.getAudioGraphFileURL(forSong: songChosen)
+                                        if let pngRepresentation = UIImagePNGRepresentation(songImage)
                                         {
-                                            if let pngRepresentation = UIImagePNGRepresentation(songImage)
+                                            do
                                             {
-                                                do
+                                                if !Song.doesSongExist(inContext: context, mpItem: songChosen)
                                                 {
-                                                    if !Song.doesSongExist(inContext: context, mpItem: songChosen)
-                                                    {
-                                                        Song.addSong(toContext: context, mpItem: songChosen, graph: pngRepresentation)
-                                                        try context.save()
-                                                    }
-                                                    try pngRepresentation.write(to: imagePath)
+                                                    Song.addSong(toContext: context, mpItem: songChosen, graph: pngRepresentation)
+                                                    try context.save()
                                                 }
-                                                catch let error
+                                                else
                                                 {
-                                                    CentralCode.showError(message: "Failed to write out the Song Graph Image to a File! OS level error is: \(error.localizedDescription)", title: "Song Graph Error", onView: strongSelf)
-                                                    return
+                                                    try Song.updateSongGraph(inContext: context, mpItem: songChosen, graph: pngRepresentation)
                                                 }
                                             }
-                                            else
+                                            catch SongErrors.saveFailed(let errorMessage)
                                             {
-                                                CentralCode.showError(message: "Failed to convert the Song Graph Image to a PNG!", title: "Song Graph Error", onView: strongSelf)
+                                                CentralCode.showError(message: errorMessage, title: "Song DB Read Error", onView: strongSelf)
                                                 return
                                             }
-                                            
+                                            catch let error
+                                            {
+                                                CentralCode.showError(message: "Failed to write out the Song Graph Image to a File! OS level error is: \(error.localizedDescription)", title: "Song Graph Error", onView: strongSelf)
+                                                return
+                                            }
                                         }
                                         else
                                         {
-                                            CentralCode.showError(message: "Failed to obtain the name and path of the Song Graph File!", title: "Song Graph Error", onView: strongSelf)
+                                            CentralCode.showError(message: "Failed to convert the Song Graph Image to a PNG!", title: "Song Graph Error", onView: strongSelf)
                                             return
                                         }
+                                        
                                     }
                                     else
                                     {

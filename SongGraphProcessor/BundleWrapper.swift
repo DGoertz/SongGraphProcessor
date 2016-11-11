@@ -8,6 +8,7 @@
 
 import Foundation
 import  MediaPlayer
+import CoreData
 
 class BundleWrapper
 {
@@ -73,13 +74,9 @@ class BundleWrapper
         return "Null_Title-\(forSong.persistentID).png"
     }
     
-    class func doesAudioGraphFileExist(forSong: MPMediaItem) -> Bool
+    class func doesAudioGraphExist(inContext: NSManagedObjectContext, forSong: MPMediaItem) -> Bool
     {
-        if let songGraphFileName = BundleWrapper.getAudioGraphFileURL(forSong: forSong)
-        {
-            return FileManager.default.fileExists(atPath: songGraphFileName.path)
-        }
-        return false
+        return Song.doesSongExist(inContext: inContext, mpItem: forSong)
     }
     
     class func doesImportCacheFileExist(forSong: MPMediaItem) -> Bool
@@ -91,23 +88,23 @@ class BundleWrapper
         return false
     }
     
-    class func removeAudioGraphFileIfNeeded(forSong: MPMediaItem)
-    {
-        if BundleWrapper.doesAudioGraphFileExist(forSong: forSong)
-        {
-            do
-            {
-                if let audioGraphFile = BundleWrapper.getAudioGraphFileURL(forSong: forSong)
-                {
-                    try FileManager.default.removeItem(at: audioGraphFile)
-                }
-            }
-            catch
-            {
-                print("Failed to remove the Audio Graph file!")
-            }
-        }
-    }
+//    class func removeAudioGraphFileIfNeeded(forSong: MPMediaItem)
+//    {
+//        if BundleWrapper.doesAudioGraphExist(forSong: forSong)
+//        {
+//            do
+//            {
+//                if let audioGraphFile = BundleWrapper.getAudioGraphFileURL(forSong: forSong)
+//                {
+//                    try FileManager.default.removeItem(at: audioGraphFile)
+//                }
+//            }
+//            catch
+//            {
+//                print("Failed to remove the Audio Graph file!")
+//            }
+//        }
+//    }
     
     class func removeImportCacheFileIfNeeded(forSong: MPMediaItem)
     {

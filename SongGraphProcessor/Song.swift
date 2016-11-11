@@ -13,18 +13,41 @@ import MediaPlayer
 
 extension Song
 {
-    class func doesSongExist(inContext: NSManagedObjectContext, mpItem: MPMediaItem) -> Bool
+    class func buildIdRequest(forMpItem: MPMediaItem) -> NSFetchRequest<Song>
     {
         let request: NSFetchRequest<Song> = Song.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %i", mpItem.persistentID)
+        let id = NSNumber(value: forMpItem.persistentID)
+        request.predicate = NSPredicate(format: "id == %@", id)
+        return request
+    }
+    
+    class func doesSongExist(inContext: NSManagedObjectContext, mpItem: MPMediaItem) -> Bool
+    {
         do
         {
-            let results = try inContext.fetch(request)
+            let results = try inContext.fetch(Song.buildIdRequest(forMpItem: mpItem))
             return results.count > 0
         }
         catch
         {
             return false
+        }
+    }
+    
+    class func getSong(inContext: NSManagedObjectContext, mpItem: MPMediaItem) throws -> Song?
+    {
+        do
+        {
+            let results = try inContext.fetch(Song.buildIdRequest(forMpItem: mpItem))
+            if results.count > 0
+            {
+                return results[0]
+            }
+            return nil
+        }
+        catch let error
+        {
+            throw SongErrors.saveFailed(errorMessage: "Save of updated Song failed.  OS Error is: \(error.localizedDescription)")
         }
     }
     
@@ -49,5 +72,21 @@ extension Song
         newSong.album = mpItem.albumTitle
         newSong.artist = mpItem.artist
         newSong.graph = graph as NSData?
+    }
+    
+    class func updateSongGraph(inContext: NSManagedObjectContext, mpItem: MPMediaItem, graph: Data) throws -> Void
+    {
+        do
+        {
+            let results = try inContext.fetch(Song.buildIdRequest(forMpItem: mpItem))
+            if results.count > 0
+            {
+                results[0].graph = graph as NSData?
+            }
+        }
+        catch let error
+        {
+            throw SongErrors.saveFailed(errorMessage: "Selecting a Song for update failed.  OS Error is: \(error.localizedDescription)")
+        }
     }
 }
