@@ -102,7 +102,7 @@ extension UIImage
         })
     }
     
-    class func image(fromSong: MPMediaItem, graphMaxWidth: Int, graphMaxHeight: Int, completion: @escaping (UIImage?, String?) -> Void) -> Void
+    class func image(fromSong: MPMediaItem, pixelsPerSecond: Int, graphMaxHeight: Int, completion: @escaping (UIImage?, String?) -> Void) -> Void
     {
         // Need to do a quick check to see whether we already have the Image or
         // what is known as the Song Graph File.
@@ -152,6 +152,11 @@ extension UIImage
                         if let hasAccurateDuration = accurateDuration
                         {
                             songLengthInSecs = Double(Double(hasAccurateDuration.value) / Double(hasAccurateDuration.timescale))
+                            if songLengthInSecs != fromSong.playbackDuration
+                            {
+                                print("NOT EQUAL!")
+                                print("\(songLengthInSecs) vs. \(fromSong.playbackDuration)")
+                            }
                         }
                         else
                         {
@@ -170,7 +175,6 @@ extension UIImage
                     var sampleTally: UInt = 0
                     // Very Important here to convert pixelsPerSecond & samplesPerPixel to Integer so drawing on the Image can be accurate.
                     // Basically this is: total width in pixels chosen for the graph / total seconds in the song.
-                    let pixelsPerSecond: UInt = UInt(ceil(Double(graphMaxWidth)/songLengthInSecs))
                     // Basically this is: samples per second / pixels per second which becomes samples / second * second / pixel which cancels the seconds and leaves samples / pixel.
                     // Also notice that samplesPerPixel means that we roll up 'samplesPerPixel' samples and average them to be represented in one pixel.
                     let samplesPerPixel: UInt = UInt(ceil(Double(samplesPerSecond)/Double(pixelsPerSecond)))
@@ -255,7 +259,7 @@ extension UIImage
                         //  Therefore it is important to get this new sample count so that drawing to the Image can accurate.
                         var samplesToGraph: [Int16] = [Int16](repeating: 0, count:fullSongData.length)
                         fullSongData.getBytes(&samplesToGraph, length: fullSongData.length * MemoryLayout<Int16>.size)
-                        let (songGraphImage, error) = UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: pixelsPerSecond, songLengthInSecs: songLengthInSecs,maxImageHeight: graphMaxHeight)
+                        let (songGraphImage, error) = UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: UInt(pixelsPerSecond), songLengthInSecs: songLengthInSecs,maxImageHeight: graphMaxHeight)
                         if let error = error
                         {
                             completion(nil, error)

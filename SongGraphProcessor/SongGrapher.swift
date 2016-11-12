@@ -12,11 +12,11 @@ import CoreData
 
 class SongGrapher : UIViewController
 {
-    static let sizeFactor: CGFloat = 10
-    
     var songImage: UIImage?
     var songChosen: MPMediaItem?
     var spinner: UIActivityIndicatorView!
+    
+    static let pixelsPerSecond: Int = 50
     
     override func viewDidAppear(_ animated: Bool)
     {
@@ -52,7 +52,7 @@ class SongGrapher : UIViewController
             }
             // Assumption at this point is that the Song has been copied from the iPod
             // store to what is called the Import Cache File.
-            UIImage.image(fromSong: songChosen, graphMaxWidth: Int(view.bounds.size.width * SongGrapher.sizeFactor), graphMaxHeight: Int(view.bounds.size.height), completion:
+            UIImage.image(fromSong: songChosen, pixelsPerSecond: SongGrapher.pixelsPerSecond, graphMaxHeight: Int(view.bounds.size.height), completion:
                 {
                     [weak self] (songImage, imageError)
                     
