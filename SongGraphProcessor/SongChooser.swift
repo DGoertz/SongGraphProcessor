@@ -22,7 +22,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
     }
     
     // MARK: Constants.
-    static let segueToSongGrapher: String = "toSongGrapher"
+    static let segueToSongGrapherKey: String = "toSongGrapher"
     
     // MARK: Properties.
     var chosenSong: MPMediaItem?
@@ -50,7 +50,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
     // MARK: View Transition Methods.
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
-        if segue.identifier == SongChooser.segueToSongGrapher, let nextVC = segue.destination as? SongGrapher, let chosenSong = self.chosenSong
+        if segue.identifier == SongChooser.segueToSongGrapherKey, let nextVC = segue.destination as? SongGrapher, let chosenSong = self.chosenSong
         {
             nextVC.songChosen = self.chosenSong
             let titlePart1 = (chosenSong.title != nil) ? chosenSong.title! : "Unknown"
@@ -108,7 +108,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
             {
                 if try Song.doesSongExist(inContext: context, mpItem: hasChosenASong)
                 {
-                    self.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
+                    self.performSegue(withIdentifier: SongChooser.segueToSongGrapherKey, sender: self)
                 }
                 else
                 {
@@ -127,14 +127,13 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                         CentralCode.runInMainThread(code:
                                             {
                                                 CentralCode.stopSpinner(strongSelf.spinner)
-                                                self?.statusLabel.text = ""
-                                                strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapher, sender: self)
+                                                strongSelf.statusLabel.text = "Import finished!"
+                                                strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapherKey, sender: self)
                                         })
                                     }
                                     else
                                     {
                                         CentralCode.stopSpinner(strongSelf.spinner)
-                                        self?.statusLabel.text = ""
                                         CentralCode.runInMainThread(code:
                                             {
                                                 
@@ -146,7 +145,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                 else
                                 {
                                     CentralCode.stopSpinner(strongSelf.spinner)
-                                    self?.statusLabel.text = ""
+                                    strongSelf.statusLabel.text = "Imported not completed!"
                                     CentralCode.runInMainThread(code:
                                         {
                                             switch importGuy.status

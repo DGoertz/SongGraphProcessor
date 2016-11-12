@@ -51,8 +51,9 @@ class SongGrapher : UIViewController
                 CentralCode.showError(message: "Song not found - unknown error.  OS ERROR is: \(error.localizedDescription)", title: "Song Read Error", onView: self)
                 return
             }
-            // Assumption at this point is that the Song has been copied from the iPod
-            // store to what is called the Import Cache File.
+            // Assumption at this point is:
+            // The Song is not in the DB or the graph is nil and that the Song has been 
+            // copied from the iPod library to what is called the Import Cache File.
             do
             {
                 try UIImage.image(fromSong: songChosen, pixelsPerSecond: SongGrapher.pixelsPerSecond, graphMaxHeight: Int(view.bounds.size.height), completion: {
@@ -80,8 +81,8 @@ class SongGrapher : UIViewController
                                 }
                                 if let songImage = songImage
                                 {
-                                    strongSelf.putUpSongGraph(graph: songImage)
                                     CentralCode.stopSpinner(strongSelf.spinner)
+                                    strongSelf.putUpSongGraph(graph: songImage)
                                     if let pngRepresentation = UIImagePNGRepresentation(songImage)
                                     {
                                         do

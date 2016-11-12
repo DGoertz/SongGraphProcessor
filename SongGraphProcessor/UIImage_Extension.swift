@@ -231,7 +231,6 @@ extension UIImage
         {
             throw UIImageErrors.assetReaderFailure(errorMessage: "Failed to spin up an Asset Reader. System error is: \(err.localizedDescription)")
         }
-        completion(nil)
     }
     
     //MARK: samples has (-) values in it.
