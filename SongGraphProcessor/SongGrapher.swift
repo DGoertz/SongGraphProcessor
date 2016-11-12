@@ -27,16 +27,13 @@ class SongGrapher : UIViewController
             self.spinner = CentralCode.startSpinner(onView: self.view)
             do
             {
-                if try Song.doesSongExist(inContext: context, mpItem: songChosen)
+                if let foundSong = try Song.getSong(inContext: context, mpItem: songChosen)
                 {
-                    if let foundSong = try Song.getSong(inContext: context, mpItem: songChosen)
+                    if let songImage: UIImage = UIImage(data: foundSong.graph as! Data)
                     {
-                        if let songImage: UIImage = UIImage(data: foundSong.graph as! Data)
-                        {
-                            CentralCode.stopSpinner(self.spinner)
-                            self.putUpSongGraph(graph: songImage)
-                            return
-                        }
+                        CentralCode.stopSpinner(self.spinner)
+                        self.putUpSongGraph(graph: songImage)
+                        return
                     }
                 }
             }
@@ -45,16 +42,22 @@ class SongGrapher : UIViewController
                 CentralCode.showError(message: "Two songs were found with the same ID!", title: "Song Read Error", onView: self)
                 return
             }
+            catch SongErrors.selectFailed(errorMessage: let errorMessage)
+            {
+                CentralCode.showError(message: errorMessage, title: "Song Read Error", onView: self)
+            }
             catch let error
             {
-                CentralCode.showError(message: "Song not found.  OS ERROR is: \(error.localizedDescription)", title: "Song Read Error", onView: self)
+                CentralCode.showError(message: "Song not found - unknown error.  OS ERROR is: \(error.localizedDescription)", title: "Song Read Error", onView: self)
                 return
             }
             // Assumption at this point is that the Song has been copied from the iPod
             // store to what is called the Import Cache File.
-            UIImage.image(fromSong: songChosen, pixelsPerSecond: SongGrapher.pixelsPerSecond, graphMaxHeight: Int(view.bounds.size.height), completion:
-                {
-                    [weak self] (songImage, imageError)
+            do
+            {
+                try UIImage.image(fromSong: songChosen, pixelsPerSecond: SongGrapher.pixelsPerSecond, graphMaxHeight: Int(view.bounds.size.height), completion: {
+                    
+                    [weak self] songImage
                     
                     in
                     
@@ -75,69 +78,67 @@ class SongGrapher : UIViewController
                                         CentralCode.showError(message: "Failed to clean up Import Cache File after producing a Song Graph: \(importCacheFileURL).  OS error is: \(error.localizedDescription)", title: "File Deletion Error", onView: strongSelf)
                                     }
                                 }
-                                if let imageError = imageError
+                                if let songImage = songImage
                                 {
-                                    CentralCode.showError(message: imageError, title: "Song Graph Error", onView: strongSelf)
-                                    return
-                                }
-                                else
-                                {
-                                    if let songImage = songImage
+                                    strongSelf.putUpSongGraph(graph: songImage)
+                                    CentralCode.stopSpinner(strongSelf.spinner)
+                                    if let pngRepresentation = UIImagePNGRepresentation(songImage)
                                     {
-                                        strongSelf.putUpSongGraph(graph: songImage)
-                                        CentralCode.stopSpinner(strongSelf.spinner)
-                                        if let pngRepresentation = UIImagePNGRepresentation(songImage)
+                                        do
                                         {
-                                            do
+                                            if try !Song.doesSongExist(inContext: context, mpItem: songChosen)
                                             {
-                                                if try !Song.doesSongExist(inContext: context, mpItem: songChosen)
-                                                {
-                                                    Song.addSong(toContext: context, mpItem: songChosen, graph: pngRepresentation)
-                                                    try context.save()
-                                                }
-                                                else
-                                                {
-                                                    try Song.updateSongGraph(inContext: context, mpItem: songChosen, graph: pngRepresentation)
-                                                }
+                                                Song.addSong(toContext: context, mpItem: songChosen, graph: pngRepresentation)
+                                                try context.save()
                                             }
-                                            catch SongErrors.selectFailed(let errorMessage)
+                                            else
                                             {
-                                                CentralCode.showError(message: errorMessage, title: "Song DB Read Error", onView: strongSelf)
-                                                return
-                                            }
-                                            catch SongErrors.idIsNotUnique
-                                            {
-                                                CentralCode.showError(message: "Two songs were found with the same ID!", title: "Song DB Read Error", onView: strongSelf)
-                                                return
-                                            }
-                                            catch SongErrors.saveFailed(let errorMessage)
-                                            {
-                                                CentralCode.showError(message: errorMessage, title: "Song DB Read Error", onView: strongSelf)
-                                                return
-                                            }
-                                            catch let error
-                                            {
-                                                CentralCode.showError(message: "Failed to write out the Song Graph Image to a File! OS level error is: \(error.localizedDescription)", title: "Song Graph Error", onView: strongSelf)
-                                                return
+                                                try Song.updateSongGraph(inContext: context, mpItem: songChosen, graph: pngRepresentation)
                                             }
                                         }
-                                        else
+                                        catch SongErrors.selectFailed(let errorMessage)
                                         {
-                                            CentralCode.showError(message: "Failed to convert the Song Graph Image to a PNG!", title: "Song Graph Error", onView: strongSelf)
+                                            CentralCode.showError(message: errorMessage, title: "Song DB Read Error", onView: strongSelf)
                                             return
                                         }
-                                        
+                                        catch SongErrors.idIsNotUnique
+                                        {
+                                            CentralCode.showError(message: "Two songs were found with the same ID!", title: "Song DB Read Error", onView: strongSelf)
+                                            return
+                                        }
+                                        catch SongErrors.saveFailed(let errorMessage)
+                                        {
+                                            CentralCode.showError(message: errorMessage, title: "Song DB Read Error", onView: strongSelf)
+                                            return
+                                        }
+                                        catch let error
+                                        {
+                                            CentralCode.showError(message: "Failed to write out the Song Graph Image to a File! OS level error is: \(error.localizedDescription)", title: "Song Graph Error", onView: strongSelf)
+                                            return
+                                        }
                                     }
                                     else
                                     {
-                                        CentralCode.showError(message: "Song Graph Image is nil!", title: "Song Graph Error", onView: strongSelf)
+                                        CentralCode.showError(message: "Failed to convert the Song Graph Image to a PNG!", title: "Song Graph Error", onView: strongSelf)
                                         return
                                     }
+                                    
+                                }
+                                else
+                                {
+                                    CentralCode.showError(message: "Song Graph Image is nil!", title: "Song Graph Error", onView: strongSelf)
+                                    return
                                 }
                         })
                     }
                     
-            })
+                })
+            }
+            catch let err
+            {
+                CentralCode.showError(message: "\(err.localizedDescription)", title: "Song Graph Error", onView: self)
+                return
+            }
         }
     }
     

@@ -30,7 +30,7 @@ extension Song
         }
         catch let err
         {
-            throw SongErrors.selectFailed(errorMessage: "Fetching a Song  in \(#function)  failed.  OS Error is: \(err.localizedDescription)")
+            throw SongErrors.selectFailed(errorMessage: "Fetch of Song  in \(#function)  failed.  OS Error is: \(err.localizedDescription)")
         }
     }
     
@@ -51,7 +51,7 @@ extension Song
         }
         catch let err
         {
-            throw SongErrors.saveFailed(errorMessage: "Fetch of Song  in \(#function) failed.  OS Error is: \(err.localizedDescription)")
+            throw SongErrors.selectFailed(errorMessage: "Fetch of Song  in \(#function) failed.  OS Error is: \(err.localizedDescription)")
         }
     }
     

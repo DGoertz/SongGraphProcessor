@@ -15,12 +15,12 @@
 import Foundation
 enum UIImageErrors: Error
 {
-    case importCacheFileNotFound(errorMessage: String)
+    case importCacheFileURLNotFound(errorMessage: String)
     case osLevelError(errorMessage: String)
     case sampleBufferCopyFailure
     case assetReaderFailure(errorMessage: String)
     case fontNotLoaded(errorMessage: String)
     case graphicsContextMissing(errorMessage: String)
-    case faileToGetImageFromContext
+    case failedToGetImageFromContext(errorMessage: String)
     case imageNotObtainedFromContext
 }

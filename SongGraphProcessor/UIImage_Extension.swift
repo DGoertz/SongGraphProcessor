@@ -74,214 +74,168 @@ extension UIImage
 // MARK: Song Graphing Methods.
 extension UIImage
 {
-    class func getTimingInfo(fromSong: MPMediaItem, completion: @escaping (CMTime?, String?) -> Void ) -> Void
-    {
-        guard let audioCacheFile = BundleWrapper.getImportCacheFileURL(forSong: fromSong)
-            else
-        {
-            completion(nil, "In __FUNC__ and unable to obtain the location of the Import Audio Cache file!")
-            return
-        }
-        let assetOptions: [String : Any] = [AVURLAssetPreferPreciseDurationAndTimingKey : NSNumber(value: true)]
-        let avAsset = AVURLAsset(url: audioCacheFile, options: assetOptions)
-        
-        // Properties of the AVURLAsset are not immediately available.
-        // Therefore we load them asynchronously and then check on the status
-        // of each of the properties that we need.
-        avAsset.loadValuesAsynchronously(forKeys: ["duration"], completionHandler:
-            {
-                var error: NSError?
-                let status = avAsset.statusOfValue(forKey: "duration", error: &error)
-                switch status
-                {
-                case .loaded:
-                    completion(avAsset.duration, nil)
-                case .cancelled, .failed, .loading, .unknown:
-                    completion(nil, "Tried to load the attribute [duration] in \(#function) and it failed with the error: \(error?.localizedDescription)")
-                }
-        })
-    }
-    
-    class func image(fromSong: MPMediaItem, pixelsPerSecond: Int, graphMaxHeight: Int, completion: @escaping (UIImage?, String?) -> Void) -> Void
+    class func image(fromSong: MPMediaItem, pixelsPerSecond: Int, graphMaxHeight: Int, completion: @escaping (UIImage?) -> Void) throws -> Void
     {
         // Need to do a quick check to see whether we already have the Image or
         // what is known as the Song Graph File.
         guard let audioCacheFile = BundleWrapper.getImportCacheFileURL(forSong: fromSong)
             else
         {
-            completion(nil, "In \(#function) and unable to obtain the location of the Import Audio Cache file!")
-            return
+            throw UIImageErrors.importCacheFileURLNotFound(errorMessage: "In \(#function) and unable to obtain the location of the Import Audio Cache file!")
         }
         let avAsset = AVURLAsset(url: audioCacheFile, options: nil)
-        UIImage.getTimingInfo(fromSong: fromSong, completion:
+        
+        do
+        {
+            let bitDepth = 16
+            let reader: AVAssetReader = try AVAssetReader(asset: avAsset)
+            let songTrack: AVAssetTrack = avAsset.tracks[0]
+            let options: [String : Any] = [AVFormatIDKey               : kAudioFormatLinearPCM,
+                                           AVLinearPCMBitDepthKey      : bitDepth,
+                                           AVLinearPCMIsBigEndianKey   : false,
+                                           AVLinearPCMIsFloatKey       : false,
+                                           AVLinearPCMIsNonInterleaved : false
+            ]
+            let trackOutput = AVAssetReaderTrackOutput(track: songTrack, outputSettings: options)
+            trackOutput.alwaysCopiesSampleData = false
+            reader.add(trackOutput)
+            // AVLinearPCMBitDepthKey was set to 16 bits or 2 bytes.
+            var samplesPerSecond: UInt32 = 0
+            var channelCount: UInt32 = 0
+            let formats = songTrack.formatDescriptions
+            if formats.count > 1
             {
-                (accurateDuration, errorMessage) in
+                print("Warning: There were more than one format in this song so the sampleRate & channelCount will reflect what was on the last format!")
+            }
+            var songLengthInSecs: TimeInterval = 0
+            let formatDescription = formats.last as! CMAudioFormatDescription
+            if let audioDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription)
+            {
+                samplesPerSecond = UInt32(audioDescription.pointee.mSampleRate)
+                songLengthInSecs = fromSong.playbackDuration
+                channelCount = audioDescription.pointee.mChannelsPerFrame
+            }
+            // We have multiple channels.
+            var songMaxSignal: Int16 = 0
+            let fullSongData: NSMutableData = NSMutableData()
+            // Begin ..............
+            reader.startReading()
+            var totalBytes: UInt64 = 0
+            var totalLeft: Int64 = 0
+            var totalRight: Int64 = 0
+            var sampleTally: UInt = 0
+            // Very Important here to convert pixelsPerSecond & samplesPerPixel to Integer so drawing on the Image can be accurate.
+            // Basically this is: total width in pixels chosen for the graph / total seconds in the song.
+            // Basically this is: samples per second / pixels per second which becomes samples / second * second / pixel which cancels the seconds and leaves samples / pixel.
+            // Also notice that samplesPerPixel means that we roll up 'samplesPerPixel' samples and average them to be represented in one pixel.
+            let samplesPerPixel: UInt = UInt(ceil(Double(samplesPerSecond)/Double(pixelsPerSecond)))
+            while (reader.status == AVAssetReaderStatus.reading)
+            {
+                guard let sampleBuffer = trackOutput.copyNextSampleBuffer(), let blockBuffer = CMSampleBufferGetDataBuffer(sampleBuffer)
+                else
+                {
+                    // A failure to copy the next buffer is not an error.
+                    // We may just be done.
+                    break
+                }
+                let length: Int = CMBlockBufferGetDataLength(blockBuffer)
+                totalBytes = totalBytes + UInt64(length)
                 
-                do
+                // Copy their data into our buffer.
+                var data = Data(capacity: length)
+                data.withUnsafeMutableBytes
                 {
-                    if let errorMessage = errorMessage
+                    (bytes: UnsafeMutablePointer<Int16>)
+                    
+                    in
+                    
+                    CMBlockBufferCopyDataBytes(blockBuffer, 0, length, bytes)
+                    let sampleArray = UnsafeMutablePointer<Int16>(bytes)
+                    // We did this so we can divey it up into 16 bit chunks.
+                    // Remember when we started the Reader Track Output we specified AVLinearPCMBitDepthKey = 16.
+                    let iterativeSampleCount: Int = length / MemoryLayout<Int16>.size
+                    // NOTE: Sample are both (-) & (+) and represent the y coordinate of the ups and downs of a sound wave.
+                    var i: Int = 0
+                    while i < (iterativeSampleCount - 1)
                     {
-                        completion(nil, errorMessage)
-                        return
-                    }
-                    let bitDepth = 16
-                    let reader: AVAssetReader = try AVAssetReader(asset: avAsset)
-                    let songTrack: AVAssetTrack = avAsset.tracks[0]
-                    let options: [String : Any] = [AVFormatIDKey               : kAudioFormatLinearPCM,
-                                                   AVLinearPCMBitDepthKey      : bitDepth,
-                                                   AVLinearPCMIsBigEndianKey   : false,
-                                                   AVLinearPCMIsFloatKey       : false,
-                                                   AVLinearPCMIsNonInterleaved : false
-                    ]
-                    let trackOutput = AVAssetReaderTrackOutput(track: songTrack, outputSettings: options)
-                    trackOutput.alwaysCopiesSampleData = false
-                    reader.add(trackOutput)
-                    // AVLinearPCMBitDepthKey was set to 16 bits or 2 bytes.
-                    var samplesPerSecond: UInt32 = 0
-                    var channelCount: UInt32 = 0
-                    let formats = songTrack.formatDescriptions
-                    if formats.count > 1
-                    {
-                        print("Warning: There were more than one format in this song so the sampleRate & channelCount will reflect what was on the last format!")
-                    }
-                    var songLengthInSecs: TimeInterval = 0
-                    let formatDescription = formats.last as! CMAudioFormatDescription
-                    if let audioDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription)
-                    {
-                        samplesPerSecond = UInt32(audioDescription.pointee.mSampleRate)
-                        if let hasAccurateDuration = accurateDuration
+                        // Extract the Left Channel Sample.
+                        // Seems that there may be an overflow here.
+                        totalLeft = totalLeft + Int64(sampleArray[i])
+                        i = i + 1
+                        // Extract the Right Channel Sample if one exists.
+                        if (channelCount == 2)
                         {
-                            songLengthInSecs = Double(Double(hasAccurateDuration.value) / Double(hasAccurateDuration.timescale))
-                            if songLengthInSecs != fromSong.playbackDuration
-                            {
-                                print("NOT EQUAL!")
-                                print("\(songLengthInSecs) vs. \(fromSong.playbackDuration)")
-                            }
+                            totalRight = totalRight + Int64(sampleArray[i])
+                            i = i + 1
                         }
-                        else
-                        {
-                            songLengthInSecs = fromSong.playbackDuration
-                        }
-                        channelCount = audioDescription.pointee.mChannelsPerFrame
-                    }
-                    // We have multiple channels.
-                    var songMaxSignal: Int16 = 0
-                    let fullSongData: NSMutableData = NSMutableData()
-                    // Begin ..............
-                    reader.startReading()
-                    var totalBytes: UInt64 = 0
-                    var totalLeft: Int64 = 0
-                    var totalRight: Int64 = 0
-                    var sampleTally: UInt = 0
-                    // Very Important here to convert pixelsPerSecond & samplesPerPixel to Integer so drawing on the Image can be accurate.
-                    // Basically this is: total width in pixels chosen for the graph / total seconds in the song.
-                    // Basically this is: samples per second / pixels per second which becomes samples / second * second / pixel which cancels the seconds and leaves samples / pixel.
-                    // Also notice that samplesPerPixel means that we roll up 'samplesPerPixel' samples and average them to be represented in one pixel.
-                    let samplesPerPixel: UInt = UInt(ceil(Double(samplesPerSecond)/Double(pixelsPerSecond)))
-                    while (reader.status == AVAssetReaderStatus.reading)
-                    {
-                        guard let sampleBuffer = trackOutput.copyNextSampleBuffer(), let blockBuffer = CMSampleBufferGetDataBuffer(sampleBuffer) else {
-                            break
-                        }
-                        let length: Int = CMBlockBufferGetDataLength(blockBuffer)
-                        totalBytes = totalBytes + UInt64(length)
+                        // Once done both (if applicable) we have processed ONE Sample that had two channels.
+                        sampleTally = sampleTally + 1
                         
-                        // Copy their data into our buffer.
-                        var data = Data(capacity: length)
-                        data.withUnsafeMutableBytes {
-                            (bytes: UnsafeMutablePointer<Int16>)
+                        if (sampleTally > samplesPerPixel)
+                        {
+                            // So what we really are doing is to take a number of Samples
+                            // and AVERAGE them so that we represent all those Samples
+                            // into one pixel or one verticle line in the graph per loop
+                            // of this code.
+                            var left = Int16(ceil(Double(totalLeft)/Double(sampleTally)))
+                            // It looks like 'songMaxSignal' is the Maximum Sample height
+                            // of either Channel across all samples being processed.
+                            // What good is this?  It allows us to create a factor later
+                            // in the algorithm so that we can keep the Graph within a
+                            // certain rectangular area.
+                            songMaxSignal = (left > songMaxSignal) ? left : songMaxSignal
+                            fullSongData.append(&left, length: MemoryLayout<Int16>.size)
                             
-                            in
-                            
-                            CMBlockBufferCopyDataBytes(blockBuffer, 0, length, bytes)
-                            let sampleArray = UnsafeMutablePointer<Int16>(bytes)
-                            // We did this so we can divey it up into 16 bit chunks.
-                            // Remember when we started the Reader Track Output we specified AVLinearPCMBitDepthKey = 16.
-                            let iterativeSampleCount: Int = length / MemoryLayout<Int16>.size
-                            // NOTE: Sample are both (-) & (+) and represent the y coordinate of the ups and downs of a sound wave.
-                            var i: Int = 0
-                            while i < (iterativeSampleCount - 1)
+                            if (channelCount == 2)
                             {
-                                // Extract the Left Channel Sample.
-                                // Seems that there may be an overflow here.
-                                totalLeft = totalLeft + Int64(sampleArray[i])
-                                i = i + 1
-                                // Extract the Right Channel Sample if one exists.
-                                if (channelCount == 2)
-                                {
-                                    totalRight = totalRight + Int64(sampleArray[i])
-                                    i = i + 1
-                                }
-                                // Once done both (if applicable) we have processed ONE Sample that had two channels.
-                                sampleTally = sampleTally + 1
-                                
-                                if (sampleTally > samplesPerPixel)
-                                {
-                                    // So what we really are doing is to take a number of Samples
-                                    // and AVERAGE them so that we represent all those Samples
-                                    // into one pixel or one verticle line in the graph per loop
-                                    // of this code.
-                                    var left = Int16(ceil(Double(totalLeft)/Double(sampleTally)))
-                                    // It looks like 'songMaxSignal' is the Maximum Sample height
-                                    // of either Channel across all samples being processed.
-                                    // What good is this?  It allows us to create a factor later
-                                    // in the algorithm so that we can keep the Graph within a
-                                    // certain rectangular area.
-                                    songMaxSignal = (left > songMaxSignal) ? left : songMaxSignal
-                                    fullSongData.append(&left, length: MemoryLayout<Int16>.size)
-                                    
-                                    if (channelCount == 2)
-                                    {
-                                        var right = Int16(ceil(Double(totalRight)/Double(sampleTally)))
-                                        songMaxSignal = (right > songMaxSignal) ? right : songMaxSignal
-                                        fullSongData.append(&right, length: MemoryLayout<Int16>.size)
-                                    }
-                                    
-                                    // So we have layed down a Left & Right Channel averaged
-                                    // to a granularity of samplesPerPixel into an NSData 'fullSongData'.
-                                    totalLeft   = 0
-                                    totalRight  = 0
-                                    sampleTally = 0
-                                }
+                                var right = Int16(ceil(Double(totalRight)/Double(sampleTally)))
+                                songMaxSignal = (right > songMaxSignal) ? right : songMaxSignal
+                                fullSongData.append(&right, length: MemoryLayout<Int16>.size)
                             }
-                            CMSampleBufferInvalidate(sampleBuffer)
+                            
+                            // So we have layed down a Left & Right Channel averaged
+                            // to a granularity of samplesPerPixel into an NSData 'fullSongData'.
+                            totalLeft   = 0
+                            totalRight  = 0
+                            sampleTally = 0
                         }
                     }
-                    if reader.status == AVAssetReaderStatus.failed || reader.status == AVAssetReaderStatus.unknown
-                    {
-                        completion(nil, "AVAssetReader has failed to read the data while making a Graph File in \(#function).  System error is \(reader.error?.localizedDescription)")
-                        return
-                    }
-                    if reader.status == AVAssetReaderStatus.completed
-                    {
-                        // We have compressed the data via whatever algorithm we have chosen above.
-                        // Bottom line is that we will be drawing the graph from the samples that now exist in the fullSongData.
-                        //  Therefore it is important to get this new sample count so that drawing to the Image can accurate.
-                        var samplesToGraph: [Int16] = [Int16](repeating: 0, count:fullSongData.length)
-                        fullSongData.getBytes(&samplesToGraph, length: fullSongData.length * MemoryLayout<Int16>.size)
-                        let (songGraphImage, error) = UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: UInt(pixelsPerSecond), songLengthInSecs: songLengthInSecs,maxImageHeight: graphMaxHeight)
-                        if let error = error
-                        {
-                            completion(nil, error)
-                        }
-                        else
-                        {
-                            completion(songGraphImage, nil)
-                        }
-                        return
-                    }
+                    CMSampleBufferInvalidate(sampleBuffer)
                 }
-                catch let err
+            }
+            if reader.status == AVAssetReaderStatus.failed || reader.status == AVAssetReaderStatus.unknown
+            {
+                var errorMessage: String = ""
+                if let hasError = reader.error
                 {
-                    completion(nil, "Failed to spin up an Asset Reader. System error is: \(err.localizedDescription)")
-                    return
+                    errorMessage = "AVAssetReader has failed to read the data while making a Graph File in \(#function).  System error is \(hasError.localizedDescription)"
                 }
-        })
-        return
+                else
+                {
+                    errorMessage = "AVAssetReader has failed to read the data while making a Graph File in \(#function).  No further information exists!"
+                }
+                throw UIImageErrors.assetReaderFailure(errorMessage: errorMessage)
+            }
+            if reader.status == AVAssetReaderStatus.completed
+            {
+                // We have compressed the data via whatever algorithm we have chosen above.
+                // Bottom line is that we will be drawing the graph from the samples that now exist in the fullSongData.
+                //  Therefore it is important to get this new sample count so that drawing to the Image can accurate.
+                var samplesToGraph: [Int16] = [Int16](repeating: 0, count:fullSongData.length)
+                fullSongData.getBytes(&samplesToGraph, length: fullSongData.length * MemoryLayout<Int16>.size)
+                let songGraph = try UIImage.drawAudioImageGraph(withSamples: samplesToGraph, songMaxSignal: Int(songMaxSignal), sampleCount: samplesToGraph.count, channelCount: channelCount, pixelsPerSecond: UInt(pixelsPerSecond), songLengthInSecs: songLengthInSecs,maxImageHeight: graphMaxHeight)
+                completion(songGraph)
+            }
+        }
+        catch let err
+        {
+            throw UIImageErrors.assetReaderFailure(errorMessage: "Failed to spin up an Asset Reader. System error is: \(err.localizedDescription)")
+        }
+        completion(nil)
     }
     
     //MARK: samples has (-) values in it.
-    class func drawAudioImageGraph(withSamples samples: Array<Int16>, songMaxSignal: Int, sampleCount: Int, channelCount: UInt32, pixelsPerSecond: UInt, songLengthInSecs: TimeInterval, maxImageHeight: Int) -> (UIImage?, String?)
+    class func drawAudioImageGraph(withSamples samples: Array<Int16>, songMaxSignal: Int, sampleCount: Int, channelCount: UInt32, pixelsPerSecond: UInt, songLengthInSecs: TimeInterval, maxImageHeight: Int) throws -> UIImage?
     {
         // So we will graph 2 channels where each wave has an upper and lower region with a space in the center and insets on the top and bottom:
         //
@@ -298,7 +252,7 @@ extension UIImage
         guard let printingFont: UIFont = UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize))
             else
         {
-            return (nil, "Unable to load font \(UIImage.kFontName) in \(#function)!")
+            throw UIImageErrors.fontNotLoaded(errorMessage: "Unable to load font \(UIImage.kFontName) in \(#function)!")
         }
         
         let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize)) as Any]
@@ -339,7 +293,7 @@ extension UIImage
         guard let context: CGContext = UIGraphicsGetCurrentContext()
             else
         {
-            return (nil, "Failed to obtain a Graphics Context!")
+            throw UIImageErrors.graphicsContextMissing(errorMessage: "Failed to obtain a Graphics Context!")
         }
         
         context.setAlpha(1)
@@ -503,9 +457,9 @@ extension UIImage
             // Tidy up
             UIGraphicsEndImageContext()
             
-            return (newImage, nil)
+            return newImage
         }
-        return (nil, "Unable to obtain Image from Graphics Context")
+        throw UIImageErrors.failedToGetImageFromContext(errorMessage: "Unable to obtain Image from Graphics Context")
     }
     
     class func printUnitFrom(refPoint: CGPoint, itsValue: Int, inContext: CGContext, usingUnit: String?, andAddedUnit: Int, andFont: UIFont) -> Void
