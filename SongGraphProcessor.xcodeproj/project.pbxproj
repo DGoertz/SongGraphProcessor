@@ -11,6 +11,7 @@
 		881BEF4B1DD4F5AD00F84AFC /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881BEF4A1DD4F5AC00F84AFC /* Song.swift */; };
 		884E21AB1DD12D9E006E6049 /* ImageErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884E21AA1DD12D9E006E6049 /* ImageErrors.swift */; };
 		884E21AD1DD1E8C4006E6049 /* CentralCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884E21AC1DD1E8C4006E6049 /* CentralCode.swift */; };
+		889A1B3F1DD78FC900D57B3C /* PositionReticle.png in Resources */ = {isa = PBXBuildFile; fileRef = 889A1B3E1DD78FC900D57B3C /* PositionReticle.png */; };
 		88FA5B191DCD3862007E7A0E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B181DCD3862007E7A0E /* AppDelegate.swift */; };
 		88FA5B1B1DCD3862007E7A0E /* SongChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B1A1DCD3862007E7A0E /* SongChooser.swift */; };
 		88FA5B1E1DCD3862007E7A0E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 88FA5B1C1DCD3862007E7A0E /* Main.storyboard */; };
@@ -31,6 +32,7 @@
 		881BEF4A1DD4F5AC00F84AFC /* Song.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Song.swift; sourceTree = "<group>"; };
 		884E21AA1DD12D9E006E6049 /* ImageErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageErrors.swift; sourceTree = "<group>"; };
 		884E21AC1DD1E8C4006E6049 /* CentralCode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CentralCode.swift; sourceTree = "<group>"; };
+		889A1B3E1DD78FC900D57B3C /* PositionReticle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = PositionReticle.png; sourceTree = "<group>"; };
 		88FA5B151DCD3862007E7A0E /* SongGraphProcessor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SongGraphProcessor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		88FA5B181DCD3862007E7A0E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		88FA5B1A1DCD3862007E7A0E /* SongChooser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongChooser.swift; sourceTree = "<group>"; };
@@ -62,6 +64,7 @@
 		8834C8FA1DCE106100D325C0 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				889A1B3E1DD78FC900D57B3C /* PositionReticle.png */,
 				88FA5B221DCD3862007E7A0E /* Assets.xcassets */,
 				88FA5B311DCD3A5B007E7A0E /* RINGM___.TTF */,
 			);
@@ -218,6 +221,7 @@
 			files = (
 				88FA5B261DCD3862007E7A0E /* LaunchScreen.storyboard in Resources */,
 				88FA5B231DCD3862007E7A0E /* Assets.xcassets in Resources */,
+				889A1B3F1DD78FC900D57B3C /* PositionReticle.png in Resources */,
 				88FA5B321DCD3A5B007E7A0E /* RINGM___.TTF in Resources */,
 				88FA5B1E1DCD3862007E7A0E /* Main.storyboard in Resources */,
 			);

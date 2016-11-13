@@ -46,7 +46,7 @@ class CentralCode
     class func getDBContext() -> NSManagedObjectContext
     {
         guard let myApp = (UIApplication.shared.delegate) as? AppDelegate else {
-            print("Failed to obtain DBContext")
+            print("Failed to obtain the Application Delegate!")
             abort()
         }
         return myApp.persistentContainer.viewContext

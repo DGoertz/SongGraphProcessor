@@ -20,7 +20,7 @@ extension UIImage
     
     static let kAlbumArtworkSize: Int                      = 63
     
-    static let kGraphTopMargin: Int                        = 60
+    static let kGraphTopMargin: Int                        = 20
     static let kGraphBottomMargin: Int                     = 10
     static let kGraphMiddleMargin: Int                     = 30
     static let kWaveMaxHeight: Int                         = 50
@@ -37,7 +37,7 @@ extension UIImage
     static let kTimeNumberLineOneSecondMarkThickness: Int  = 2
     static let kTimeNumberLineOneSecondMarkHeight: Int     = 8
     
-    static let kTimeLineNumberLineTextMargin: Int          = 20
+    static let kTimeLineNumberLineTextMargin: Int          = 5
     static let kTimeLineNumberLineTextMarkerOffset: Int    = 15
     static let kTimeLineNumberLineTextMarkerMargin: Int    = 4
     
@@ -178,8 +178,8 @@ extension UIImage
                             // into one pixel or one verticle line in the graph per loop
                             // of this code.
                             var left = Int16(ceil(Double(totalLeft)/Double(sampleTally)))
-                            // It looks like 'songMaxSignal' is the Maximum Sample height
-                            // of either Channel across all samples being processed.
+                            // 'songMaxSignal' is the Maximum Sample height of either
+                            // Channel across all samples being processed.
                             // What good is this?  It allows us to create a factor later
                             // in the algorithm so that we can keep the Graph within a
                             // certain rectangular area.

@@ -12,19 +12,54 @@ import CoreData
 
 class SongGrapher : UIViewController
 {
-    var songImage: UIImage?
+    var songImage:  UIImage?
     var songChosen: MPMediaItem?
-    var spinner: UIActivityIndicatorView!
+    var spinner:    UIActivityIndicatorView!
     
-    static let pixelsPerSecond: Int = 50
+    var timer:      Timer?
+    var songPlayer: AVAudioPlayer?
+    var scrollView: UIScrollView?
+    var reticle:    UIImageView?
+    
+    static let pixelsPerSecond: Int     = 50
+    static let tabBarHeight:    CGFloat = 45
+    
+    @IBOutlet weak var playButton: UIBarButtonItem!
+    
+    
+    @IBAction func playButtonPressed(_ sender: Any)
+    {
+        if let songPlayer = self.songPlayer
+        {
+            if songPlayer.isPlaying
+            {
+                return
+            }
+            songPlayer.play()
+            return
+        }
+        CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onView: self)
+    }
+    
     
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
+        self.loadSongGraph()
+        self.loadSongPlayer()
+    }
+    
+    override func didReceiveMemoryWarning()
+    {
+        super.didReceiveMemoryWarning()
+    }
+    
+    func loadSongGraph() -> Void
+    {
+        self.spinner = CentralCode.startSpinner(onView: self.view)
         let context: NSManagedObjectContext = CentralCode.getDBContext()
         if let songChosen = songChosen
         {
-            self.spinner = CentralCode.startSpinner(onView: self.view)
             do
             {
                 if let foundSong = try Song.getSong(inContext: context, mpItem: songChosen)
@@ -52,7 +87,7 @@ class SongGrapher : UIViewController
                 return
             }
             // Assumption at this point is:
-            // The Song is not in the DB or the graph is nil and that the Song has been 
+            // The Song is not in the DB or the graph is nil and that the Song has been
             // copied from the iPod library to what is called the Import Cache File.
             do
             {
@@ -143,18 +178,59 @@ class SongGrapher : UIViewController
         }
     }
     
-    override func didReceiveMemoryWarning()
+    func putUpSongGraph(graph: UIImage) -> Void
     {
-        super.didReceiveMemoryWarning()
-        
+        let graphWindow: CGRect = CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: self.view.frame.width, height: self.view.frame.height - SongGrapher.tabBarHeight))
+        self.scrollView = UIScrollView(frame: graphWindow)
+        let imageView: UIImageView = UIImageView(image: graph)
+        self.scrollView?.addSubview(imageView)
+        self.scrollView?.contentSize = imageView.frame.size
+        self.view.addSubview(self.scrollView!)
+        self.putUpReticle()
     }
     
-    func putUpSongGraph(graph: UIImage)
+    func putUpReticle()
     {
-        let scrollView: UIScrollView = UIScrollView(frame: self.view.frame)
-        let imageView: UIImageView = UIImageView(image: graph)
-        scrollView.addSubview(imageView)
-        scrollView.contentSize = imageView.frame.size
-        self.view.addSubview(scrollView)
+        if let reticleOverlay: UIImage = UIImage(named: "PositionReticle.png")
+        {
+            self.reticle = UIImageView(image: reticleOverlay)
+            self.reticle?.center = CGPoint(x: 0, y: self.scrollView!.center.y)
+            self.view.addSubview(self.reticle!)
+        }
+    }
+    
+    func startTimer() -> Void
+    {
+        let heartRate: TimeInterval = TimeInterval(floatLiteral: 0.1)
+        self.timer = Timer.scheduledTimer(withTimeInterval: heartRate, repeats: true, block:
+            {
+                (theTime)
+                in
+                if self.songPlayer != nil
+                {
+                    let player = self.songPlayer
+                    
+                }
+        })
+    }
+    
+    func stopTimer(theTimer: Timer) -> Void
+    {
+        theTimer.invalidate()
+    }
+    
+    func loadSongPlayer() -> Void
+    {
+        if let songChosen = self.songChosen, let url = songChosen.assetURL
+        {
+            do
+            {
+                self.songPlayer = try AVAudioPlayer(contentsOf: url)
+            }
+            catch let err
+            {
+                CentralCode.showError(message: "Failed to initialize the Song Player with the Chosen Song!  OS Error is: \(err.localizedDescription)", title: "Song Player Init Error", onView: self)
+            }
+        }
     }
 }
