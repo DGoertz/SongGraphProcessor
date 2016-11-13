@@ -20,24 +20,24 @@ extension UIImage
     
     static let kAlbumArtworkSize: Int                      = 63
     
-    static let kGraphTopMargin: Int                        = 20
+    static let kGraphTopMargin: Int                        = 30
     static let kGraphBottomMargin: Int                     = 10
     static let kGraphMiddleMargin: Int                     = 30
     static let kWaveMaxHeight: Int                         = 50
     
     static let kTimeNumberLineThickness: Int               = 2
-    static let kTimeNumberLineHeight: Int                  = 20
+    static let kTimeNumberLineHeight: Int                  = 17
     
     static let kTimeNumberLineMinuteMarkThickness: Int     = 4
-    static let kTimeNumberLineMinuteMarkHeight: Int        = 17
+    static let kTimeNumberLineMinuteMarkHeight: Int        = 13
     
     static let kTimeNumberLineFiveSecondMarkThickness: Int = 2
-    static let kTimeNumberLineFiveSecondMarkHeight: Int    = 13
+    static let kTimeNumberLineFiveSecondMarkHeight: Int    = 8
     
     static let kTimeNumberLineOneSecondMarkThickness: Int  = 2
-    static let kTimeNumberLineOneSecondMarkHeight: Int     = 8
+    static let kTimeNumberLineOneSecondMarkHeight: Int     = 5
     
-    static let kTimeLineNumberLineTextMargin: Int          = 5
+    static let kTimeLineNumberLineTextMargin: Int          = 2
     static let kTimeLineNumberLineTextMarkerOffset: Int    = 15
     static let kTimeLineNumberLineTextMarkerMargin: Int    = 4
     

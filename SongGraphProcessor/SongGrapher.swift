@@ -91,7 +91,8 @@ class SongGrapher : UIViewController
             // copied from the iPod library to what is called the Import Cache File.
             do
             {
-                try UIImage.image(fromSong: songChosen, pixelsPerSecond: SongGrapher.pixelsPerSecond, graphMaxHeight: Int(view.bounds.size.height), completion: {
+                let graphHeight = self.view.frame.height - SongGrapher.tabBarHeight
+                try UIImage.image(fromSong: songChosen, pixelsPerSecond: SongGrapher.pixelsPerSecond, graphMaxHeight: Int(graphHeight), completion: {
                     
                     [weak self] songImage
                     
