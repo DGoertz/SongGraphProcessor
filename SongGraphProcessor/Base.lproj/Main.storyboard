@@ -75,12 +75,23 @@
                                 <items>
                                     <barButtonItem systemItem="play" id="noF-yy-PFd">
                                         <color key="tintColor" red="1" green="0.31397847029999998" blue="0.1050086107" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <connections>
+                                            <action selector="playPressed:" destination="7ia-6O-h3l" id="HrZ-nf-T0h"/>
+                                        </connections>
                                     </barButtonItem>
+                                    <barButtonItem width="42" style="plain" systemItem="fixedSpace" id="1mM-cf-hce"/>
                                     <barButtonItem systemItem="pause" id="Heh-U7-teS">
                                         <color key="tintColor" red="1" green="0.31397847029999998" blue="0.1050086107" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <connections>
+                                            <action selector="pausePressed:" destination="7ia-6O-h3l" id="now-hn-i8i"/>
+                                        </connections>
                                     </barButtonItem>
-                                    <barButtonItem systemItem="rewind" id="eLT-a1-jL8">
+                                    <barButtonItem width="42" style="plain" systemItem="fixedSpace" id="nGk-JN-KqB"/>
+                                    <barButtonItem systemItem="rewind" id="ryK-IX-Jq5">
                                         <color key="tintColor" red="1" green="0.31397847029999998" blue="0.1050086107" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <connections>
+                                            <action selector="rewindPressed:" destination="7ia-6O-h3l" id="fnX-Ki-bB1"/>
+                                        </connections>
                                     </barButtonItem>
                                 </items>
                             </toolbar>
@@ -92,14 +103,14 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="uto-pw-gaj" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1569" y="138"/>
+            <point key="canvasLocation" x="1620" y="138"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="Jbo-Jq-AC5">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="h8V-Zs-e9E" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="Bl3-Cz-aNm">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="Bl3-Cz-aNm">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>

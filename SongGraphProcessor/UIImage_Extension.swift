@@ -74,7 +74,7 @@ extension UIImage
 // MARK: Song Graphing Methods.
 extension UIImage
 {
-    class func image(fromSong: MPMediaItem, pixelsPerSecond: Int, graphMaxHeight: Int, completion: @escaping (UIImage?) -> Void) throws -> Void
+    class func image(fromSong: MPMediaItem, pixelsPerSecond: CGFloat, graphMaxHeight: Int, completion: @escaping (UIImage?) -> Void) throws -> Void
     {
         // Need to do a quick check to see whether we already have the Image or
         // what is known as the Song Graph File.

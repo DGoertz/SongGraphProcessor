@@ -21,37 +21,85 @@ class SongGrapher : UIViewController
     var scrollView: UIScrollView?
     var reticle:    UIImageView?
     
-    static let pixelsPerSecond: Int     = 50
+    var halfWidth: CGFloat = 0
+    var lastHalf:  CGFloat = 0
+    
+    static let pixelsPerSecond: CGFloat = 50
     static let tabBarHeight:    CGFloat = 45
     
-    @IBOutlet weak var playButton: UIBarButtonItem!
-    
-    
-    @IBAction func playButtonPressed(_ sender: Any)
-    {
+    @IBAction func playPressed(_ sender: UIBarButtonItem) {
         if let songPlayer = self.songPlayer
         {
             if songPlayer.isPlaying
             {
                 return
             }
+            songPlayer.prepareToPlay()
             songPlayer.play()
             return
         }
         CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onView: self)
     }
     
+    @IBAction func pausePressed(_ sender: UIBarButtonItem)
+    {
+        if let songPlayer = self.songPlayer
+        {
+            if !songPlayer.isPlaying
+            {
+                return
+            }
+            songPlayer.pause()
+            return
+        }
+        CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onView: self)
+    }
+    
+    @IBAction func rewindPressed(_ sender: UIBarButtonItem)
+    {
+        if let songPlayer = self.songPlayer
+        {
+            if songPlayer.isPlaying
+            {
+                songPlayer.pause()
+            }
+            songPlayer.currentTime = 0
+            self.resetArtwork()
+            songPlayer.prepareToPlay()
+            return
+        }
+        CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onView: self)
+    }
     
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
+        self.halfWidth = self.view.frame.width / 2
         self.loadSongGraph()
         self.loadSongPlayer()
+        self.startTimer()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool)
+    {
+        if let timer = self.timer
+        {
+            self.stopTimer(theTimer: timer)
+        }
     }
     
     override func didReceiveMemoryWarning()
     {
         super.didReceiveMemoryWarning()
+    }
+    
+    func resetArtwork()
+    {
+        if self.scrollView != nil && self.reticle != nil
+        {
+            self.scrollView!.contentOffset = CGPoint(x: 0, y: 0)
+            self.reticle!.center = CGPoint(x: 0, y: self.scrollView!.center.y)
+        }
     }
     
     func loadSongGraph() -> Void
@@ -67,6 +115,7 @@ class SongGrapher : UIViewController
                     if let songImage: UIImage = UIImage(data: foundSong.graph as! Data)
                     {
                         CentralCode.stopSpinner(self.spinner)
+                        self.lastHalf = songImage.size.width - self.halfWidth
                         self.putUpSongGraph(graph: songImage)
                         return
                     }
@@ -102,6 +151,7 @@ class SongGrapher : UIViewController
                     {
                         CentralCode.runInMainThread(code:
                             {
+                                
                                 // We've produced the Graph and don't need the Import file anymore.
                                 if BundleWrapper.doesImportCacheFileExist(forSong: songChosen)
                                 {
@@ -117,6 +167,7 @@ class SongGrapher : UIViewController
                                 }
                                 if let songImage = songImage
                                 {
+                                    strongSelf.lastHalf = songImage.size.width - strongSelf.halfWidth
                                     CentralCode.stopSpinner(strongSelf.spinner)
                                     strongSelf.putUpSongGraph(graph: songImage)
                                     if let pngRepresentation = UIImagePNGRepresentation(songImage)
@@ -202,15 +253,30 @@ class SongGrapher : UIViewController
     
     func startTimer() -> Void
     {
-        let heartRate: TimeInterval = TimeInterval(floatLiteral: 0.1)
-        self.timer = Timer.scheduledTimer(withTimeInterval: heartRate, repeats: true, block:
+        self.timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block:
             {
                 (theTime)
                 in
-                if self.songPlayer != nil
+                
+                if self.songPlayer != nil && self.reticle != nil  && self.scrollView != nil
                 {
-                    let player = self.songPlayer
-                    
+                    if self.songPlayer!.isPlaying
+                    {
+                        let nextX: CGFloat = CGFloat(self.songPlayer!.currentTime) * SongGrapher.pixelsPerSecond
+                        let nextPosition: CGPoint = CGPoint(x: nextX, y: self.scrollView!.center.y)
+                        if nextX < self.halfWidth
+                        {
+                            self.reticle!.center = nextPosition
+                        }
+                        else if nextX > self.lastHalf
+                        {
+                            self.reticle!.center = nextPosition
+                        }
+                        else
+                        {
+                            self.scrollView!.contentOffset = CGPoint(x: nextX - self.halfWidth, y: 0)
+                        }
+                    }
                 }
         })
     }
