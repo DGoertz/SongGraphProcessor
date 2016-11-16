@@ -12,12 +12,12 @@ import CoreData
 
 class CentralCode
 {
-    class func showError(message: String, title: String, onView: UIViewController)
+    class func showError(message: String, title: String, onViewController: UIViewController)
     {
         let errorBox: UIAlertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let okButton: UIAlertAction = UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: nil)
         errorBox.addAction(okButton)
-        onView.present(errorBox, animated: true, completion: nil)
+        onViewController.present(errorBox, animated: true, completion: nil)
     }
     
     class func runInMainThread(code: @escaping ()-> Void) -> Void
@@ -37,10 +37,10 @@ class CentralCode
         return spinner
     }
     
-    class func stopSpinner(_ theSpinner: UIActivityIndicatorView)
+    class func stopSpinner(_ theSpinner: UIActivityIndicatorView?)
     {
-        theSpinner.stopAnimating()
-        theSpinner.removeFromSuperview()
+        theSpinner?.stopAnimating()
+        theSpinner?.removeFromSuperview()
     }
     
     class func getDBContext() -> NSManagedObjectContext
@@ -49,6 +49,8 @@ class CentralCode
             print("Failed to obtain the Application Delegate!")
             abort()
         }
+        // This is needed for the unique constraint defined in PracticeItem.
+        myApp.persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         return myApp.persistentContainer.viewContext
     }
 }

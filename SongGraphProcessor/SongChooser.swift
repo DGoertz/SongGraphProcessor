@@ -74,7 +74,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
         }
         else
         {
-            CentralCode.showError(message: "The Navigation Controller is invalid!  BUILD AGAIN!", title: "Internal Error", onView: self)
+            CentralCode.showError(message: "The Navigation Controller is invalid!  BUILD AGAIN!", title: "Internal Error", onViewController: self)
         }
     }
     
@@ -90,12 +90,12 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                 mediaPicker.dismiss(animated: true, completion: nil)
                 if hasChosenASong.hasProtectedAsset == true
                 {
-                    CentralCode.showError(message: "Sorry that song is protected by DRM!", title: "Song Choice Error", onView: self)
+                    CentralCode.showError(message: "Sorry that song is protected by DRM!", title: "Song Choice Error", onViewController: self)
                     self.statusLabel.text = "Sorry that song is protected by DRM!"
                 }
                 else
                 {
-                    CentralCode.showError(message: "Failed to aquire a path for the temporary Import File!  Note: This file is not DRM protected so who knows why?", title: "Song Choice Error", onView: self)
+                    CentralCode.showError(message: "Failed to aquire a path for the temporary Import File!  Note: This file is not DRM protected so who knows why?", title: "Song Choice Error", onViewController: self)
                     self.statusLabel.text = "Failed to aquire a path for the temporary Import File!"
                 }
                 return
@@ -133,35 +133,34 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                     }
                                     else
                                     {
-                                        CentralCode.stopSpinner(strongSelf.spinner)
                                         CentralCode.runInMainThread(code:
                                             {
-                                                
-                                                CentralCode.showError(message: "Import Status of music file is good but file was not found after copy?", title: "Import Error", onView: strongSelf)
+                                                CentralCode.stopSpinner(strongSelf.spinner)
+                                                CentralCode.showError(message: "Import Status of music file is good but file was not found after copy?", title: "Import Error", onViewController: strongSelf)
                                                 strongSelf.statusLabel.text = "Status good but file not found?"
                                         })
                                     }
                                 }
                                 else
                                 {
-                                    CentralCode.stopSpinner(strongSelf.spinner)
-                                    strongSelf.statusLabel.text = "Imported not completed!"
                                     CentralCode.runInMainThread(code:
                                         {
+                                            strongSelf.statusLabel.text = "Imported not completed!"
+                                            CentralCode.stopSpinner(strongSelf.spinner)
                                             switch importGuy.status
                                             {
                                             case AVAssetExportSessionStatus.cancelled:
-                                                CentralCode.showError(message: "Import Status is not completed.  Status is Cancelled", title: "Import Error", onView: strongSelf)
+                                                CentralCode.showError(message: "Import Status is not completed.  Status is Cancelled", title: "Import Error", onViewController: strongSelf)
                                             case AVAssetExportSessionStatus.exporting:
-                                                CentralCode.showError(message: "Import Status is not completed.  Status is Exporting", title: "Import Error", onView: strongSelf)
+                                                CentralCode.showError(message: "Import Status is not completed.  Status is Exporting", title: "Import Error", onViewController: strongSelf)
                                             case AVAssetExportSessionStatus.failed:
-                                                CentralCode.showError(message: "Import Status is not completed.  Status is Failed", title: "Import Error", onView: strongSelf)
+                                                CentralCode.showError(message: "Import Status is not completed.  Status is Failed", title: "Import Error", onViewController: strongSelf)
                                             case AVAssetExportSessionStatus.unknown:
-                                                CentralCode.showError(message: "Import Status is not completed.  Status is Unknown", title: "Import Error", onView: strongSelf)
+                                                CentralCode.showError(message: "Import Status is not completed.  Status is Unknown", title: "Import Error", onViewController: strongSelf)
                                             case AVAssetExportSessionStatus.waiting:
-                                                CentralCode.showError(message: "Import Status is not completed.  Status is Waiting", title: "Import Error", onView: strongSelf)
+                                                CentralCode.showError(message: "Import Status is not completed.  Status is Waiting", title: "Import Error", onViewController: strongSelf)
                                             default:
-                                                CentralCode.showError(message: "Import Status is not completed.  Status is Fucked!", title: "Import Error", onView: strongSelf)
+                                                CentralCode.showError(message: "Import Status is not completed.  Status is Fucked!", title: "Import Error", onViewController: strongSelf)
                                             }
                                     })
                                 }
@@ -172,11 +171,8 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
             }
             catch let error
             {
-                if self.spinner != nil
-                {
-                    CentralCode.stopSpinner(self.spinner)
-                }
-                CentralCode.showError(message: error.localizedDescription, title: "Song Choice Error", onView: self)
+                CentralCode.stopSpinner(self.spinner)
+                CentralCode.showError(message: error.localizedDescription, title: "Song Choice Error", onViewController: self)
             }
             
         }

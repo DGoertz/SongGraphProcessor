@@ -93,6 +93,20 @@
                                             <action selector="rewindPressed:" destination="7ia-6O-h3l" id="fnX-Ki-bB1"/>
                                         </connections>
                                     </barButtonItem>
+                                    <barButtonItem width="42" style="plain" systemItem="fixedSpace" id="1gm-cE-fCj"/>
+                                    <barButtonItem title="5+" id="fwD-qD-ab5">
+                                        <color key="tintColor" red="1" green="0.31397847029999998" blue="0.1050086107" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <connections>
+                                            <action selector="plus5:" destination="7ia-6O-h3l" id="6MX-Ze-nNi"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem width="42" style="plain" systemItem="fixedSpace" id="wCS-YW-XvN"/>
+                                    <barButtonItem title="5-" id="0Aw-We-Pcj">
+                                        <color key="tintColor" red="1" green="0.31397847029999998" blue="0.1050086107" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <connections>
+                                            <action selector="minus5:" destination="7ia-6O-h3l" id="QsV-ss-JbV"/>
+                                        </connections>
+                                    </barButtonItem>
                                 </items>
                             </toolbar>
                         </subviews>
@@ -110,7 +124,7 @@
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="h8V-Zs-e9E" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" id="Bl3-Cz-aNm">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="Bl3-Cz-aNm">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>

@@ -21,11 +21,13 @@ class SongGrapher : UIViewController
     var scrollView: UIScrollView?
     var reticle:    UIImageView?
     
-    var halfWidth: CGFloat = 0
-    var lastHalf:  CGFloat = 0
+    var halfScreenWidth: CGFloat = 0
+    var lastScreenHalfWidth:  CGFloat = 0
     
     static let pixelsPerSecond: CGFloat = 50
     static let tabBarHeight:    CGFloat = 45
+    
+    // MARK: GUI Contol Methods.
     
     @IBAction func playPressed(_ sender: UIBarButtonItem) {
         if let songPlayer = self.songPlayer
@@ -38,7 +40,7 @@ class SongGrapher : UIViewController
             songPlayer.play()
             return
         }
-        CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onView: self)
+        CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onViewController: self)
     }
     
     @IBAction func pausePressed(_ sender: UIBarButtonItem)
@@ -52,7 +54,7 @@ class SongGrapher : UIViewController
             songPlayer.pause()
             return
         }
-        CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onView: self)
+        CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onViewController: self)
     }
     
     @IBAction func rewindPressed(_ sender: UIBarButtonItem)
@@ -68,13 +70,33 @@ class SongGrapher : UIViewController
             songPlayer.prepareToPlay()
             return
         }
-        CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onView: self)
+        CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onViewController: self)
     }
+    
+    @IBAction func plus5(_ sender: UIBarButtonItem)
+    {
+        if self.songPlayer != nil
+        {
+            self.songPlayer!.currentTime = self.songPlayer!.currentTime + 5
+            self.realignArtwork()
+        }
+    }
+    
+    @IBAction func minus5(_ sender: UIBarButtonItem)
+    {
+        if self.songPlayer != nil
+        {
+            self.songPlayer!.currentTime = self.songPlayer!.currentTime - 5
+            self.realignArtwork()
+        }
+    }
+    
+    // MARK: UIView Methods.
     
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
-        self.halfWidth = self.view.frame.width / 2
+        self.halfScreenWidth = self.view.frame.width / 2
         self.loadSongGraph()
         self.loadSongPlayer()
         self.startTimer()
@@ -93,6 +115,46 @@ class SongGrapher : UIViewController
         super.didReceiveMemoryWarning()
     }
     
+    // MARK: Timer Methods.
+    
+    func realignArtwork()
+    {
+        let newPosition = CGPoint(x: CGFloat(self.songPlayer!.currentTime) * SongGrapher.pixelsPerSecond, y: self.scrollView!.center.y)
+        if newPosition.x > self.halfScreenWidth && newPosition.x < self.lastScreenHalfWidth
+        {
+            self.reticle!.center = CGPoint(x: newPosition.x, y: self.scrollView!.center.y)
+            self.scrollView!.contentOffset = CGPoint(x: newPosition.x - self.halfScreenWidth, y: 0)
+        }
+        else
+        {
+            self.reticle!.center = newPosition
+        }
+    }
+    
+    func startTimer() -> Void
+    {
+        self.timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block:
+            {
+                (theTime)
+                in
+                
+                if self.songPlayer != nil && self.reticle != nil  && self.scrollView != nil
+                {
+                    if self.songPlayer!.isPlaying
+                    {
+                        self.realignArtwork()
+                    }
+                }
+        })
+    }
+    
+    func stopTimer(theTimer: Timer) -> Void
+    {
+        theTimer.invalidate()
+    }
+    
+    // MARK: Utility Methods.
+    
     func resetArtwork()
     {
         if self.scrollView != nil && self.reticle != nil
@@ -101,6 +163,44 @@ class SongGrapher : UIViewController
             self.reticle!.center = CGPoint(x: 0, y: self.scrollView!.center.y)
         }
     }
+    
+    func updateSong(inContext: NSManagedObjectContext, aSong: MPMediaItem, withGraph: Data)
+    {
+        do
+        {
+            if try !Song.doesSongExist(inContext: inContext, mpItem: aSong)
+            {
+                Song.addSong(toContext: inContext, mpItem: aSong, graph: withGraph)
+            }
+            else
+            {
+                try Song.updateSongGraph(inContext: inContext, mpItem: aSong, graph: withGraph)
+            }
+            try inContext.save()
+        }
+        catch SongErrors.selectFailed(let errorMessage)
+        {
+            CentralCode.showError(message: errorMessage, title: "Song DB Read Error", onViewController: self)
+            return
+        }
+        catch SongErrors.idIsNotUnique
+        {
+            CentralCode.showError(message: "Two songs were found with the same ID!", title: "Song DB Read Error", onViewController: self)
+            return
+        }
+        catch SongErrors.saveFailed(let errorMessage)
+        {
+            CentralCode.showError(message: errorMessage, title: "Song DB Save Error", onViewController: self)
+            return
+        }
+        catch let error
+        {
+            CentralCode.showError(message: "Failed to save the Song! OS level error is: \(error.localizedDescription)", title: "Song Graph Error", onViewController: self)
+            return
+        }
+    }
+    
+    // Initialize GUI.
     
     func loadSongGraph() -> Void
     {
@@ -114,25 +214,25 @@ class SongGrapher : UIViewController
                 {
                     if let songImage: UIImage = UIImage(data: foundSong.graph as! Data)
                     {
-                        CentralCode.stopSpinner(self.spinner)
-                        self.lastHalf = songImage.size.width - self.halfWidth
+                        self.lastScreenHalfWidth = songImage.size.width - self.halfScreenWidth
                         self.putUpSongGraph(graph: songImage)
+                        CentralCode.stopSpinner(self.spinner)
                         return
                     }
                 }
             }
             catch SongErrors.idIsNotUnique
             {
-                CentralCode.showError(message: "Two songs were found with the same ID!", title: "Song Read Error", onView: self)
+                CentralCode.showError(message: "Two songs were found with the same ID!", title: "Song Read Error", onViewController: self)
                 return
             }
             catch SongErrors.selectFailed(errorMessage: let errorMessage)
             {
-                CentralCode.showError(message: errorMessage, title: "Song Read Error", onView: self)
+                CentralCode.showError(message: errorMessage, title: "Song Read Error", onViewController: self)
             }
             catch let error
             {
-                CentralCode.showError(message: "Song not found - unknown error.  OS ERROR is: \(error.localizedDescription)", title: "Song Read Error", onView: self)
+                CentralCode.showError(message: "Song not found - OS ERROR is: \(error.localizedDescription)", title: "Song Read Error", onViewController: self)
                 return
             }
             // Assumption at this point is:
@@ -141,90 +241,61 @@ class SongGrapher : UIViewController
             do
             {
                 let graphHeight = self.view.frame.height - SongGrapher.tabBarHeight
-                try UIImage.image(fromSong: songChosen, pixelsPerSecond: SongGrapher.pixelsPerSecond, graphMaxHeight: Int(graphHeight), completion: {
+                try UIImage.image(fromSong: songChosen, pixelsPerSecond: SongGrapher.pixelsPerSecond, graphMaxHeight: Int(graphHeight), completion:
                     
-                    [weak self] songImage
-                    
-                    in
-                    
-                    if let strongSelf = self
                     {
-                        CentralCode.runInMainThread(code:
-                            {
-                                
-                                // We've produced the Graph and don't need the Import file anymore.
-                                if BundleWrapper.doesImportCacheFileExist(forSong: songChosen)
+                        
+                        [weak self] songImage
+                        
+                        in
+                        
+                        if let strongSelf = self
+                        {
+                            CentralCode.runInMainThread(code:
                                 {
-                                    let importCacheFileURL: URL = BundleWrapper.getImportCacheFileURL(forSong: songChosen)!
-                                    do
+                                    
+                                    // We've produced the Graph and don't need the Import file anymore.
+                                    if BundleWrapper.doesImportCacheFileExist(forSong: songChosen)
                                     {
-                                        try FileManager.default.removeItem(at: importCacheFileURL)
-                                    }
-                                    catch let error
-                                    {
-                                        CentralCode.showError(message: "Failed to clean up Import Cache File after producing a Song Graph: \(importCacheFileURL).  OS error is: \(error.localizedDescription)", title: "File Deletion Error", onView: strongSelf)
-                                    }
-                                }
-                                if let songImage = songImage
-                                {
-                                    strongSelf.lastHalf = songImage.size.width - strongSelf.halfWidth
-                                    CentralCode.stopSpinner(strongSelf.spinner)
-                                    strongSelf.putUpSongGraph(graph: songImage)
-                                    if let pngRepresentation = UIImagePNGRepresentation(songImage)
-                                    {
+                                        let importCacheFileURL: URL = BundleWrapper.getImportCacheFileURL(forSong: songChosen)!
                                         do
                                         {
-                                            if try !Song.doesSongExist(inContext: context, mpItem: songChosen)
-                                            {
-                                                Song.addSong(toContext: context, mpItem: songChosen, graph: pngRepresentation)
-                                                try context.save()
-                                            }
-                                            else
-                                            {
-                                                try Song.updateSongGraph(inContext: context, mpItem: songChosen, graph: pngRepresentation)
-                                            }
-                                        }
-                                        catch SongErrors.selectFailed(let errorMessage)
-                                        {
-                                            CentralCode.showError(message: errorMessage, title: "Song DB Read Error", onView: strongSelf)
-                                            return
-                                        }
-                                        catch SongErrors.idIsNotUnique
-                                        {
-                                            CentralCode.showError(message: "Two songs were found with the same ID!", title: "Song DB Read Error", onView: strongSelf)
-                                            return
-                                        }
-                                        catch SongErrors.saveFailed(let errorMessage)
-                                        {
-                                            CentralCode.showError(message: errorMessage, title: "Song DB Read Error", onView: strongSelf)
-                                            return
+                                            try FileManager.default.removeItem(at: importCacheFileURL)
                                         }
                                         catch let error
                                         {
-                                            CentralCode.showError(message: "Failed to write out the Song Graph Image to a File! OS level error is: \(error.localizedDescription)", title: "Song Graph Error", onView: strongSelf)
+                                            CentralCode.showError(message: "Failed to clean up Import Cache File after producing a Song Graph: \(importCacheFileURL).  OS error is: \(error.localizedDescription)", title: "File Deletion Error", onViewController: strongSelf)
+                                        }
+                                    }
+                                    if let songImage = songImage
+                                    {
+                                        strongSelf.lastScreenHalfWidth = songImage.size.width - strongSelf.halfScreenWidth
+                                        strongSelf.putUpSongGraph(graph: songImage)
+                                        CentralCode.stopSpinner(strongSelf.spinner)
+                                        if let pngRepresentation = UIImagePNGRepresentation(songImage)
+                                        {
+                                            strongSelf.updateSong(inContext: context, aSong: songChosen, withGraph: pngRepresentation)
+                                        }
+                                        else
+                                        {
+                                            CentralCode.showError(message: "Failed to convert the Song Graph Image to a PNG!", title: "Song Graph Error", onViewController: strongSelf)
                                             return
                                         }
+                                        
                                     }
                                     else
                                     {
-                                        CentralCode.showError(message: "Failed to convert the Song Graph Image to a PNG!", title: "Song Graph Error", onView: strongSelf)
+                                        CentralCode.showError(message: "Song Graph Image is nil!", title: "Song Graph Error", onViewController: strongSelf)
                                         return
                                     }
-                                    
-                                }
-                                else
-                                {
-                                    CentralCode.showError(message: "Song Graph Image is nil!", title: "Song Graph Error", onView: strongSelf)
-                                    return
-                                }
-                        })
-                    }
-                    
+                            })
+                        }
+                        
                 })
             }
             catch let err
             {
-                CentralCode.showError(message: "\(err.localizedDescription)", title: "Song Graph Error", onView: self)
+                CentralCode.showError(message: "\(err.localizedDescription)", title: "Song Graph Error", onViewController: self)
                 return
             }
         }
@@ -246,44 +317,10 @@ class SongGrapher : UIViewController
         if let reticleOverlay: UIImage = UIImage(named: "PositionReticle.png")
         {
             self.reticle = UIImageView(image: reticleOverlay)
-            self.reticle?.center = CGPoint(x: 0, y: self.scrollView!.center.y)
-            self.view.addSubview(self.reticle!)
+            self.reticle!.center = CGPoint(x: 0, y: self.scrollView!.center.y)
+            self.scrollView!.addSubview(self.reticle!)
+            //self.view.addSubview(self.reticle!)
         }
-    }
-    
-    func startTimer() -> Void
-    {
-        self.timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block:
-            {
-                (theTime)
-                in
-                
-                if self.songPlayer != nil && self.reticle != nil  && self.scrollView != nil
-                {
-                    if self.songPlayer!.isPlaying
-                    {
-                        let nextX: CGFloat = CGFloat(self.songPlayer!.currentTime) * SongGrapher.pixelsPerSecond
-                        let nextPosition: CGPoint = CGPoint(x: nextX, y: self.scrollView!.center.y)
-                        if nextX < self.halfWidth
-                        {
-                            self.reticle!.center = nextPosition
-                        }
-                        else if nextX > self.lastHalf
-                        {
-                            self.reticle!.center = nextPosition
-                        }
-                        else
-                        {
-                            self.scrollView!.contentOffset = CGPoint(x: nextX - self.halfWidth, y: 0)
-                        }
-                    }
-                }
-        })
-    }
-    
-    func stopTimer(theTimer: Timer) -> Void
-    {
-        theTimer.invalidate()
     }
     
     func loadSongPlayer() -> Void
@@ -296,7 +333,7 @@ class SongGrapher : UIViewController
             }
             catch let err
             {
-                CentralCode.showError(message: "Failed to initialize the Song Player with the Chosen Song!  OS Error is: \(err.localizedDescription)", title: "Song Player Init Error", onView: self)
+                CentralCode.showError(message: "Failed to initialize the Song Player with the Chosen Song!  OS Error is: \(err.localizedDescription)", title: "Song Player Init Error", onViewController: self)
             }
         }
     }
