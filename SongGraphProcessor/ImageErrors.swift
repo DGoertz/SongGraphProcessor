@@ -23,4 +23,5 @@ enum UIImageErrors: Error
     case graphicsContextMissing(errorMessage: String)
     case failedToGetImageFromContext(errorMessage: String)
     case imageNotObtainedFromContext
+    case imageIsNotCGImage
 }

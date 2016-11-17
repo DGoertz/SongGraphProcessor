@@ -68,7 +68,7 @@ extension Song
         }
     }
     
-    class func addSong(toContext: NSManagedObjectContext, mpItem: MPMediaItem, graph: Data)
+    class func addSong(toContext: NSManagedObjectContext, mpItem: MPMediaItem, graph: Data) -> Song
     {
         let newSong = Song(context: toContext)
         newSong.id = "\(mpItem.persistentID)"
@@ -76,9 +76,10 @@ extension Song
         newSong.album = mpItem.albumTitle
         newSong.artist = mpItem.artist
         newSong.graph = graph as NSData?
+        return newSong
     }
     
-    class func updateSongGraph(inContext: NSManagedObjectContext, mpItem: MPMediaItem, graph: Data) throws -> Void
+    class func updateSongGraph(inContext: NSManagedObjectContext, mpItem: MPMediaItem, graph: Data) throws -> Song?
     {
         do
         {
@@ -90,11 +91,32 @@ extension Song
             if results.count == 1
             {
                 results[0].graph = graph as NSData?
+                return results[0]
             }
         }
         catch let error
         {
-            throw SongErrors.saveFailed(errorMessage: "Fetch of Song  in \(#function) failed.  OS Error is: \(error.localizedDescription)")
+            throw SongErrors.selectFailed(errorMessage: "Fetch of Song  in \(#function) failed.  OS Error is: \(error.localizedDescription)")
         }
+        return nil
+    }
+    
+    // Don't know if this is needed but the code auto-generated creates - for a to-many
+    // relationship - something called an NSSet and not an NSSet<PracticeItem>.
+    // In this function I return to you something actually useful.
+    func getPracticeItems() -> [PracticeItem]?
+    {
+        guard let hasPractices = self.practices else {
+            return nil
+        }
+        var results: [PracticeItem] = []
+        for currentPracticeItem in hasPractices
+        {
+            if let pi = currentPracticeItem as? PracticeItem
+            {
+                results.append(pi)
+            }
+        }
+        return results
     }
 }

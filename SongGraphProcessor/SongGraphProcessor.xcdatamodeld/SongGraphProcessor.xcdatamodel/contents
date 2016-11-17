@@ -2,6 +2,7 @@
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="11542" systemVersion="16B2555" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="PracticeItem" representedClassName="PracticeItem" syncable="YES" codeGenerationType="class">
         <attribute name="endTime" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="startTime" attributeType="Double" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
         <relationship name="forSong" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Song" inverseName="practices" inverseEntity="Song" syncable="YES"/>
         <uniquenessConstraints>
@@ -17,10 +18,10 @@
         <attribute name="graph" attributeType="Binary" syncable="YES"/>
         <attribute name="id" attributeType="String" syncable="YES"/>
         <attribute name="name" attributeType="String" syncable="YES"/>
-        <relationship name="practices" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PracticeItem" inverseName="forSong" inverseEntity="PracticeItem" syncable="YES"/>
+        <relationship name="practices" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="PracticeItem" inverseName="forSong" inverseEntity="PracticeItem" syncable="YES"/>
     </entity>
     <elements>
-        <element name="Song" positionX="-263" positionY="-117" width="128" height="135"/>
-        <element name="PracticeItem" positionX="-63" positionY="18" width="128" height="88"/>
+        <element name="PracticeItem" positionX="-63" positionY="18" width="128" height="103"/>
+        <element name="Song" positionX="-263" positionY="-117" width="128" height="133"/>
     </elements>
 </model>

@@ -14,12 +14,16 @@ class SongGrapher : UIViewController
 {
     var songImage:  UIImage?
     var songChosen: MPMediaItem?
-    var spinner:    UIActivityIndicatorView!
+    var song:       Song?
+    var currentPI:  PracticeItem?
     
+    var spinner:    UIActivityIndicatorView!
     var timer:      Timer?
     var songPlayer: AVAudioPlayer?
     var scrollView: UIScrollView?
     var reticle:    UIImageView?
+    
+    let context:    NSManagedObjectContext = CentralCode.getDBContext()
     
     var halfScreenWidth: CGFloat = 0
     var lastScreenHalfWidth:  CGFloat = 0
@@ -66,7 +70,7 @@ class SongGrapher : UIViewController
                 songPlayer.pause()
             }
             songPlayer.currentTime = 0
-            self.resetArtwork()
+            self.rewindReticleAndSongGraphImage()
             songPlayer.prepareToPlay()
             return
         }
@@ -75,19 +79,74 @@ class SongGrapher : UIViewController
     
     @IBAction func plus5(_ sender: UIBarButtonItem)
     {
-        if self.songPlayer != nil
+        if let songPlayer = self.songPlayer
         {
-            self.songPlayer!.currentTime = self.songPlayer!.currentTime + 5
-            self.realignArtwork()
+            if songPlayer.isPlaying
+            {
+                self.songPlayer!.currentTime = self.songPlayer!.currentTime + 5
+                self.realignReticleAndSongGraph()
+            }
         }
     }
     
     @IBAction func minus5(_ sender: UIBarButtonItem)
     {
-        if self.songPlayer != nil
+        if let songPlayer = self.songPlayer
         {
-            self.songPlayer!.currentTime = self.songPlayer!.currentTime - 5
-            self.realignArtwork()
+            if songPlayer.isPlaying
+            {
+                self.songPlayer!.currentTime = self.songPlayer!.currentTime - 5
+                self.realignReticleAndSongGraph()
+            }
+        }
+    }
+    
+    @IBAction func markStart(_ sender: UIBarButtonItem)
+    {
+        if self.song != nil && self.songPlayer != nil
+        {
+            if self.songPlayer!.isPlaying && self.currentPI == nil
+            {
+                self.currentPI = PracticeItem(context: context)
+                self.currentPI!.forSong = song
+                self.currentPI!.startTime = self.songPlayer!.currentTime
+            }
+        }
+    }
+    
+    @IBAction func markEnd(_ sender: UIBarButtonItem)
+    {
+        if self.currentPI != nil && self.song != nil && self.songPlayer != nil
+        {
+            if self.songPlayer!.isPlaying
+            {
+                self.currentPI!.endTime = self.songPlayer!.currentTime
+                do
+                {
+                    try self.context.save()
+                    if let newSongGraph: UIImage = try UIImage.drawPracticeItems(forSong: self.song!, withPixelsPerSecond: SongGrapher.pixelsPerSecond)
+                    {
+                        self.putUpSongGraph(graph: newSongGraph)
+                        self.currentPI = nil
+                    }
+                }
+                catch UIImageErrors.imageIsNotCGImage
+                {
+                    CentralCode.showError(message: "Song Graph could not be converted into a CG Image!", title: "Drawing Practice Item Error", onViewController: self)
+                }
+                catch UIImageErrors.graphicsContextMissing(errorMessage: let errorMessage)
+                {
+                    CentralCode.showError(message: "\(errorMessage)", title: "Drawing Practice Item Error", onViewController: self)
+                }
+                catch UIImageErrors.failedToGetImageFromContext
+                {
+                    CentralCode.showError(message: "Image could not be obtained from the Core Graphics Context!", title: "Drawing Practice Item Error", onViewController: self)
+                }
+                catch let err
+                {
+                    CentralCode.showError(message: "Error Saving Practice Item.  OS Error is: \(err.localizedDescription)", title: "DB Error", onViewController: self)
+                }
+            }
         }
     }
     
@@ -117,20 +176,6 @@ class SongGrapher : UIViewController
     
     // MARK: Timer Methods.
     
-    func realignArtwork()
-    {
-        let newPosition = CGPoint(x: CGFloat(self.songPlayer!.currentTime) * SongGrapher.pixelsPerSecond, y: self.scrollView!.center.y)
-        if newPosition.x > self.halfScreenWidth && newPosition.x < self.lastScreenHalfWidth
-        {
-            self.reticle!.center = CGPoint(x: newPosition.x, y: self.scrollView!.center.y)
-            self.scrollView!.contentOffset = CGPoint(x: newPosition.x - self.halfScreenWidth, y: 0)
-        }
-        else
-        {
-            self.reticle!.center = newPosition
-        }
-    }
-    
     func startTimer() -> Void
     {
         self.timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block:
@@ -142,7 +187,7 @@ class SongGrapher : UIViewController
                 {
                     if self.songPlayer!.isPlaying
                     {
-                        self.realignArtwork()
+                        self.realignReticleAndSongGraph()
                     }
                 }
         })
@@ -155,7 +200,21 @@ class SongGrapher : UIViewController
     
     // MARK: Utility Methods.
     
-    func resetArtwork()
+    func realignReticleAndSongGraph()
+    {
+        let newPosition = CGPoint(x: CGFloat(self.songPlayer!.currentTime) * SongGrapher.pixelsPerSecond, y: self.scrollView!.center.y)
+        if newPosition.x > self.halfScreenWidth && newPosition.x < self.lastScreenHalfWidth
+        {
+            self.reticle!.center = newPosition
+            self.scrollView!.contentOffset = CGPoint(x: newPosition.x - self.halfScreenWidth, y: 0)
+        }
+        else
+        {
+            self.reticle!.center = newPosition
+        }
+    }
+    
+    func rewindReticleAndSongGraphImage()
     {
         if self.scrollView != nil && self.reticle != nil
         {
@@ -164,40 +223,47 @@ class SongGrapher : UIViewController
         }
     }
     
-    func updateSong(inContext: NSManagedObjectContext, aSong: MPMediaItem, withGraph: Data)
+    // Currently I wait until I have a Graph before saving the Song.
+    func updateSong(inContext: NSManagedObjectContext, aSong: MPMediaItem, withGraph: Data) -> Song?
     {
         do
         {
             if try !Song.doesSongExist(inContext: inContext, mpItem: aSong)
             {
-                Song.addSong(toContext: inContext, mpItem: aSong, graph: withGraph)
+                let newSong = Song.addSong(toContext: inContext, mpItem: aSong, graph: withGraph)
+                try inContext.save()
+                return newSong
             }
             else
             {
-                try Song.updateSongGraph(inContext: inContext, mpItem: aSong, graph: withGraph)
+                if let foundSong = try Song.updateSongGraph(inContext: inContext, mpItem: aSong, graph: withGraph)
+                {
+                    try inContext.save()
+                    return foundSong
+                }
             }
-            try inContext.save()
         }
         catch SongErrors.selectFailed(let errorMessage)
         {
             CentralCode.showError(message: errorMessage, title: "Song DB Read Error", onViewController: self)
-            return
+            return nil
         }
         catch SongErrors.idIsNotUnique
         {
             CentralCode.showError(message: "Two songs were found with the same ID!", title: "Song DB Read Error", onViewController: self)
-            return
+            return nil
         }
         catch SongErrors.saveFailed(let errorMessage)
         {
             CentralCode.showError(message: errorMessage, title: "Song DB Save Error", onViewController: self)
-            return
+            return nil
         }
         catch let error
         {
             CentralCode.showError(message: "Failed to save the Song! OS level error is: \(error.localizedDescription)", title: "Song Graph Error", onViewController: self)
-            return
+            return nil
         }
+        return nil
     }
     
     // Initialize GUI.
@@ -205,7 +271,6 @@ class SongGrapher : UIViewController
     func loadSongGraph() -> Void
     {
         self.spinner = CentralCode.startSpinner(onView: self.view)
-        let context: NSManagedObjectContext = CentralCode.getDBContext()
         if let songChosen = songChosen
         {
             do
@@ -214,8 +279,20 @@ class SongGrapher : UIViewController
                 {
                     if let songImage: UIImage = UIImage(data: foundSong.graph as! Data)
                     {
+                        self.songImage = songImage
                         self.lastScreenHalfWidth = songImage.size.width - self.halfScreenWidth
-                        self.putUpSongGraph(graph: songImage)
+                        self.song = foundSong
+                        do
+                        {
+                            if let finalImage = try UIImage.drawPracticeItems(forSong: foundSong, withPixelsPerSecond: SongGrapher.pixelsPerSecond)
+                            {
+                                self.putUpSongGraph(graph: finalImage)                                
+                            }
+                        }
+                        catch let err
+                        {
+                            CentralCode.showError(message: "\(err.localizedDescription)", title: "Error Showing Song Graph", onViewController: self)
+                        }
                         CentralCode.stopSpinner(self.spinner)
                         return
                     }
@@ -229,6 +306,7 @@ class SongGrapher : UIViewController
             catch SongErrors.selectFailed(errorMessage: let errorMessage)
             {
                 CentralCode.showError(message: errorMessage, title: "Song Read Error", onViewController: self)
+                return
             }
             catch let error
             {
@@ -269,19 +347,20 @@ class SongGrapher : UIViewController
                                     }
                                     if let songImage = songImage
                                     {
+                                        strongSelf.songImage = songImage
                                         strongSelf.lastScreenHalfWidth = songImage.size.width - strongSelf.halfScreenWidth
                                         strongSelf.putUpSongGraph(graph: songImage)
                                         CentralCode.stopSpinner(strongSelf.spinner)
                                         if let pngRepresentation = UIImagePNGRepresentation(songImage)
                                         {
-                                            strongSelf.updateSong(inContext: context, aSong: songChosen, withGraph: pngRepresentation)
+                                            strongSelf.song = strongSelf.updateSong(inContext: strongSelf.context, aSong: songChosen, withGraph: pngRepresentation)
+                                            return
                                         }
                                         else
                                         {
                                             CentralCode.showError(message: "Failed to convert the Song Graph Image to a PNG!", title: "Song Graph Error", onViewController: strongSelf)
                                             return
                                         }
-                                        
                                     }
                                     else
                                     {
@@ -290,7 +369,6 @@ class SongGrapher : UIViewController
                                     }
                             })
                         }
-                        
                 })
             }
             catch let err
@@ -301,25 +379,37 @@ class SongGrapher : UIViewController
         }
     }
     
+    func removePreviousScrollView()
+    {
+        if self.scrollView != nil
+        {
+            self.scrollView!.removeFromSuperview()
+            self.scrollView = nil
+        }
+    }
+    
     func putUpSongGraph(graph: UIImage) -> Void
     {
-        let graphWindow: CGRect = CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: self.view.frame.width, height: self.view.frame.height - SongGrapher.tabBarHeight))
-        self.scrollView = UIScrollView(frame: graphWindow)
-        let imageView: UIImageView = UIImageView(image: graph)
-        self.scrollView?.addSubview(imageView)
-        self.scrollView?.contentSize = imageView.frame.size
-        self.view.addSubview(self.scrollView!)
-        self.putUpReticle()
+        self.removePreviousScrollView()
+        let graphWindowFrame: CGRect = CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: self.view.frame.width, height: self.view.frame.height - SongGrapher.tabBarHeight))
+        self.scrollView = UIScrollView(frame: graphWindowFrame)
+        if self.scrollView != nil
+        {
+            let imageView: UIImageView = UIImageView(image: graph)
+            self.scrollView!.addSubview(imageView)
+            self.scrollView!.contentSize = imageView.frame.size
+            self.view.addSubview(self.scrollView!)
+            self.putUpReticle()
+        }
     }
     
     func putUpReticle()
     {
-        if let reticleOverlay: UIImage = UIImage(named: "PositionReticle.png")
+        if let reticleImage: UIImage = UIImage(named: "PositionReticle.png")
         {
-            self.reticle = UIImageView(image: reticleOverlay)
+            self.reticle = UIImageView(image: reticleImage)
             self.reticle!.center = CGPoint(x: 0, y: self.scrollView!.center.y)
             self.scrollView!.addSubview(self.reticle!)
-            //self.view.addSubview(self.reticle!)
         }
     }
     

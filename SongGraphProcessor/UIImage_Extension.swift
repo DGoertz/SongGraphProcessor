@@ -10,6 +10,7 @@ import Foundation
 import UIKit
 import MediaPlayer
 import CoreText
+import CoreData
 
 // MARK: Song Graphing Constants.
 extension UIImage
@@ -41,10 +42,10 @@ extension UIImage
     static let kTimeLineNumberLineTextMarkerOffset: Int    = 15
     static let kTimeLineNumberLineTextMarkerMargin: Int    = 4
     
-    static let kGraphMarkerBaseWidth: Int                  = 5
-    static let kGraphMarkerBaseHeight: Int                 = 20
-    static let kGraphStartMarkerWidth: Int                 = 3
-    static let kGraphEndMarkerWidth: Int                   = 3
+    static let kGraphMarkerBaseWidth: CGFloat              = 5
+    static let kGraphMarkerBaseHeight: CGFloat             = 20
+    static let kGraphStartMarkerWidth: CGFloat             = 3
+    static let kGraphEndMarkerWidth: CGFloat               = 3
     
     static let kStepperDelta: Int                          = 1
     
@@ -132,7 +133,7 @@ extension UIImage
             while (reader.status == AVAssetReaderStatus.reading)
             {
                 guard let sampleBuffer = trackOutput.copyNextSampleBuffer(), let blockBuffer = CMSampleBufferGetDataBuffer(sampleBuffer)
-                else
+                    else
                 {
                     // A failure to copy the next buffer is not an error.
                     // We may just be done.
@@ -144,63 +145,63 @@ extension UIImage
                 // Copy their data into our buffer.
                 var data = Data(capacity: length)
                 data.withUnsafeMutableBytes
-                {
-                    (bytes: UnsafeMutablePointer<Int16>)
-                    
-                    in
-                    
-                    CMBlockBufferCopyDataBytes(blockBuffer, 0, length, bytes)
-                    let sampleArray = UnsafeMutablePointer<Int16>(bytes)
-                    // We did this so we can divey it up into 16 bit chunks.
-                    // Remember when we started the Reader Track Output we specified AVLinearPCMBitDepthKey = 16.
-                    let iterativeSampleCount: Int = length / MemoryLayout<Int16>.size
-                    // NOTE: Sample are both (-) & (+) and represent the y coordinate of the ups and downs of a sound wave.
-                    var i: Int = 0
-                    while i < (iterativeSampleCount - 1)
                     {
-                        // Extract the Left Channel Sample.
-                        // Seems that there may be an overflow here.
-                        totalLeft = totalLeft + Int64(sampleArray[i])
-                        i = i + 1
-                        // Extract the Right Channel Sample if one exists.
-                        if (channelCount == 2)
-                        {
-                            totalRight = totalRight + Int64(sampleArray[i])
-                            i = i + 1
-                        }
-                        // Once done both (if applicable) we have processed ONE Sample that had two channels.
-                        sampleTally = sampleTally + 1
+                        (bytes: UnsafeMutablePointer<Int16>)
                         
-                        if (sampleTally > samplesPerPixel)
+                        in
+                        
+                        CMBlockBufferCopyDataBytes(blockBuffer, 0, length, bytes)
+                        let sampleArray = UnsafeMutablePointer<Int16>(bytes)
+                        // We did this so we can divey it up into 16 bit chunks.
+                        // Remember when we started the Reader Track Output we specified AVLinearPCMBitDepthKey = 16.
+                        let iterativeSampleCount: Int = length / MemoryLayout<Int16>.size
+                        // NOTE: Sample are both (-) & (+) and represent the y coordinate of the ups and downs of a sound wave.
+                        var i: Int = 0
+                        while i < (iterativeSampleCount - 1)
                         {
-                            // So what we really are doing is to take a number of Samples
-                            // and AVERAGE them so that we represent all those Samples
-                            // into one pixel or one verticle line in the graph per loop
-                            // of this code.
-                            var left = Int16(ceil(Double(totalLeft)/Double(sampleTally)))
-                            // 'songMaxSignal' is the Maximum Sample height of either
-                            // Channel across all samples being processed.
-                            // What good is this?  It allows us to create a factor later
-                            // in the algorithm so that we can keep the Graph within a
-                            // certain rectangular area.
-                            songMaxSignal = (left > songMaxSignal) ? left : songMaxSignal
-                            fullSongData.append(&left, length: MemoryLayout<Int16>.size)
-                            
+                            // Extract the Left Channel Sample.
+                            // Seems that there may be an overflow here.
+                            totalLeft = totalLeft + Int64(sampleArray[i])
+                            i = i + 1
+                            // Extract the Right Channel Sample if one exists.
                             if (channelCount == 2)
                             {
-                                var right = Int16(ceil(Double(totalRight)/Double(sampleTally)))
-                                songMaxSignal = (right > songMaxSignal) ? right : songMaxSignal
-                                fullSongData.append(&right, length: MemoryLayout<Int16>.size)
+                                totalRight = totalRight + Int64(sampleArray[i])
+                                i = i + 1
                             }
+                            // Once done both (if applicable) we have processed ONE Sample that had two channels.
+                            sampleTally = sampleTally + 1
                             
-                            // So we have layed down a Left & Right Channel averaged
-                            // to a granularity of samplesPerPixel into an NSData 'fullSongData'.
-                            totalLeft   = 0
-                            totalRight  = 0
-                            sampleTally = 0
+                            if (sampleTally > samplesPerPixel)
+                            {
+                                // So what we really are doing is to take a number of Samples
+                                // and AVERAGE them so that we represent all those Samples
+                                // into one pixel or one verticle line in the graph per loop
+                                // of this code.
+                                var left = Int16(ceil(Double(totalLeft)/Double(sampleTally)))
+                                // 'songMaxSignal' is the Maximum Sample height of either
+                                // Channel across all samples being processed.
+                                // What good is this?  It allows us to create a factor later
+                                // in the algorithm so that we can keep the Graph within a
+                                // certain rectangular area.
+                                songMaxSignal = (left > songMaxSignal) ? left : songMaxSignal
+                                fullSongData.append(&left, length: MemoryLayout<Int16>.size)
+                                
+                                if (channelCount == 2)
+                                {
+                                    var right = Int16(ceil(Double(totalRight)/Double(sampleTally)))
+                                    songMaxSignal = (right > songMaxSignal) ? right : songMaxSignal
+                                    fullSongData.append(&right, length: MemoryLayout<Int16>.size)
+                                }
+                                
+                                // So we have layed down a Left & Right Channel averaged
+                                // to a granularity of samplesPerPixel into an NSData 'fullSongData'.
+                                totalLeft   = 0
+                                totalRight  = 0
+                                sampleTally = 0
+                            }
                         }
-                    }
-                    CMSampleBufferInvalidate(sampleBuffer)
+                        CMSampleBufferInvalidate(sampleBuffer)
                 }
             }
             if reader.status == AVAssetReaderStatus.failed || reader.status == AVAssetReaderStatus.unknown
@@ -545,5 +546,115 @@ extension UIImage
             return newImage
         }
         return nil
+    }
+    
+    class func getEditableImageContext(fromImage: UIImage) throws -> CGContext
+    {
+        guard let hasImage = fromImage.cgImage
+            else
+        {
+            throw UIImageErrors.imageIsNotCGImage
+        }
+        UIGraphicsBeginImageContext(fromImage.size)
+        
+        guard let context: CGContext = UIGraphicsGetCurrentContext()
+            else
+        {
+            throw UIImageErrors.graphicsContextMissing(errorMessage: "Failed to obtain a Graphics Context!")
+        }
+        // We have to do this because Quartz has a bottom oriented and inverted coordinate system.
+        context.translateBy(x: 0, y: fromImage.size.height)
+        context.scaleBy(x: 1.0, y: -1.0)
+        context.draw(hasImage, in: CGRect(x: 0, y: 0, width: fromImage.size.width, height: fromImage.size.height))
+        return context
+    }
+    
+    class func drawPracticeItems(forSong: Song,withPixelsPerSecond: CGFloat) throws -> UIImage?
+    {
+        if let hasGraph = forSong.graph
+        {
+            if var workingGraph = UIImage(data: hasGraph as Data)
+            {
+                if let practiceItems = forSong.getPracticeItems()
+                {
+                    for currentPracticeItem in practiceItems
+                    {
+                        do
+                        {
+                            workingGraph = try UIImage.draw(practiceItem: currentPracticeItem, onSongGraph: workingGraph, withPixelsPerSecond: withPixelsPerSecond)
+                        }
+                        catch let err
+                        {
+                            throw err
+                        }
+                    }
+                    return workingGraph
+                }
+            }
+        }
+        return nil
+    }
+    
+    class func draw(practiceItem: PracticeItem, onSongGraph: UIImage, withPixelsPerSecond: CGFloat) throws -> UIImage
+    {
+        do
+        {
+            let context: CGContext = try UIImage.getEditableImageContext(fromImage: onSongGraph)
+            let baseMarkerColor = UIImage.kGraphColorMarkerBase.cgColor
+            let startMarkerColor = UIImage.kGraphColorStartMarker.cgColor
+            let endMarkerColor = UIImage.kGraphColorEndMarker.cgColor
+            
+            // Draw Top Starter Marker Base.
+            context.setLineWidth(UIImage.kGraphMarkerBaseWidth)
+            context.move(to: CGPoint(x: CGFloat(practiceItem.startTime) * withPixelsPerSecond, y: 0))
+            context.addLine(to: CGPoint(x: CGFloat(practiceItem.startTime) * withPixelsPerSecond, y: CGFloat(UIImage.kGraphMarkerBaseHeight)))
+            context.setStrokeColor(baseMarkerColor)
+            context.strokePath()
+            
+            // Draw Bottom Starter Marker Base.
+            context.move(to: CGPoint(x: CGFloat(practiceItem.startTime) * withPixelsPerSecond, y: onSongGraph.size.height - UIImage.kGraphMarkerBaseHeight))
+            context.addLine(to: CGPoint(x: CGFloat(practiceItem.startTime) * withPixelsPerSecond, y: onSongGraph.size.height))
+            context.strokePath()
+
+            // Draw the Starter Marker.
+            context.setLineWidth(UIImage.kGraphStartMarkerWidth)
+            context.move(to: CGPoint(x: CGFloat(practiceItem.startTime) * withPixelsPerSecond, y: UIImage.kGraphMarkerBaseHeight))
+            context.addLine(to: CGPoint(x: CGFloat(practiceItem.startTime) * withPixelsPerSecond, y: onSongGraph.size.height - UIImage.kGraphMarkerBaseHeight))
+            context.setStrokeColor(startMarkerColor)
+            context.strokePath()
+
+            context.setLineWidth(UIImage.kGraphMarkerBaseWidth)
+            context.move(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: 0))
+            context.addLine(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: UIImage.kGraphMarkerBaseHeight))
+            context.setStrokeColor(baseMarkerColor)
+            context.strokePath()
+
+            // Draw Bottom End Marker Base.
+            context.move(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: onSongGraph.size.height - UIImage.kGraphMarkerBaseHeight))
+            context.addLine(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: onSongGraph.size.height - UIImage.kGraphMarkerBaseHeight))
+            context.addLine(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: onSongGraph.size.height))
+            context.strokePath()
+            
+            // Draw the End Marker.
+            context.setLineWidth(UIImage.kGraphEndMarkerWidth)
+            context.move(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: UIImage.kGraphMarkerBaseHeight))
+            context.addLine(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: onSongGraph.size.height - UIImage.kGraphMarkerBaseHeight))
+            context.setStrokeColor(endMarkerColor)
+            context.strokePath()
+
+            // Create new image
+            if let newImage = UIGraphicsGetImageFromCurrentImageContext()
+            {
+                // Tidy up
+                UIGraphicsEndImageContext()
+                
+                return newImage
+            }
+            throw UIImageErrors.failedToGetImageFromContext(errorMessage: "Unable to obtain Image from Graphics Context after drawing a Practice Item!")
+        }
+        catch let err
+        {
+            throw err
+        }
     }
 }
