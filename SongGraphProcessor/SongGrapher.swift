@@ -10,16 +10,24 @@ import UIKit
 import MediaPlayer
 import CoreData
 
+enum ScreenMode
+{
+    case playing
+    case recording
+    case paused
+}
+
 class SongGrapher : UIViewController
 {
-    var songImage:  UIImage?
+    var currentMode: ScreenMode = .paused
     var songChosen: MPMediaItem?
+    var songImage:  UIImage?
     var song:       Song?
     var currentPI:  PracticeItem?
     
-    var spinner:    UIActivityIndicatorView!
     var timer:      Timer?
     var songPlayer: AVAudioPlayer?
+    var spinner:    UIActivityIndicatorView!
     var scrollView: UIScrollView?
     var reticle:    UIImageView?
     
@@ -30,6 +38,21 @@ class SongGrapher : UIViewController
     
     static let pixelsPerSecond: CGFloat = 50
     static let tabBarHeight:    CGFloat = 45
+    
+    // MARK: GUI Contol References.
+    @IBOutlet weak var playButton: UIBarButtonItem!
+    
+    @IBOutlet weak var pauseButton: UIBarButtonItem!
+    
+    @IBOutlet weak var rewindButton: UIBarButtonItem!
+    
+    @IBOutlet weak var fastForward5: UIBarButtonItem!
+    
+    @IBOutlet weak var fastBackward5: UIBarButtonItem!
+    
+    @IBOutlet weak var startPracticeItem: UIBarButtonItem!
+    
+    @IBOutlet weak var endPracticeItem: UIBarButtonItem!
     
     // MARK: GUI Contol Methods.
     
@@ -42,6 +65,7 @@ class SongGrapher : UIViewController
             }
             songPlayer.prepareToPlay()
             songPlayer.play()
+            self.currentMode = .playing
             return
         }
         CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onViewController: self)
@@ -56,6 +80,7 @@ class SongGrapher : UIViewController
                 return
             }
             songPlayer.pause()
+            self.currentMode = .paused
             return
         }
         CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onViewController: self)
@@ -72,6 +97,7 @@ class SongGrapher : UIViewController
             songPlayer.currentTime = 0
             self.rewindReticleAndSongGraphImage()
             songPlayer.prepareToPlay()
+            self.currentMode = .paused
             return
         }
         CentralCode.showError(message: "Song Player not Initialized", title: "Song Player Error", onViewController: self)
@@ -79,26 +105,17 @@ class SongGrapher : UIViewController
     
     @IBAction func plus5(_ sender: UIBarButtonItem)
     {
-        if let songPlayer = self.songPlayer
+        if self.songChosen != nil
         {
-            if songPlayer.isPlaying
-            {
-                self.songPlayer!.currentTime = self.songPlayer!.currentTime + 5
-                self.realignReticleAndSongGraph()
-            }
+            self.songPlayer!.currentTime = (self.songPlayer!.currentTime + 5) <= self.songChosen!.playbackDuration ? (self.songPlayer!.currentTime + 5) : self.songChosen!.playbackDuration
+            self.realignReticleAndSongGraph()
         }
     }
     
     @IBAction func minus5(_ sender: UIBarButtonItem)
     {
-        if let songPlayer = self.songPlayer
-        {
-            if songPlayer.isPlaying
-            {
-                self.songPlayer!.currentTime = self.songPlayer!.currentTime - 5
-                self.realignReticleAndSongGraph()
-            }
-        }
+        self.songPlayer!.currentTime = (self.songPlayer!.currentTime - 5 > 0) ? self.songPlayer!.currentTime - 5 : 0
+        self.realignReticleAndSongGraph()
     }
     
     @IBAction func markStart(_ sender: UIBarButtonItem)
@@ -110,6 +127,7 @@ class SongGrapher : UIViewController
                 self.currentPI = PracticeItem(context: context)
                 self.currentPI!.forSong = song
                 self.currentPI!.startTime = self.songPlayer!.currentTime
+                self.currentMode = .recording
             }
         }
     }
@@ -127,6 +145,9 @@ class SongGrapher : UIViewController
                     if let newSongGraph: UIImage = try UIImage.drawPracticeItems(forSong: self.song!, withPixelsPerSecond: SongGrapher.pixelsPerSecond)
                     {
                         self.putUpSongGraph(graph: newSongGraph)
+                        self.realignReticleAndSongGraph()
+                        self.currentMode = .paused
+                        self.songPlayer!.pause()
                         self.currentPI = nil
                     }
                 }
@@ -183,6 +204,7 @@ class SongGrapher : UIViewController
                 (theTime)
                 in
                 
+                self.setControlsToState()
                 if self.songPlayer != nil && self.reticle != nil  && self.scrollView != nil
                 {
                     if self.songPlayer!.isPlaying
@@ -199,6 +221,37 @@ class SongGrapher : UIViewController
     }
     
     // MARK: Utility Methods.
+    
+    func setControlsToState()
+    {
+        switch self.currentMode
+        {
+        case .paused:
+            self.playButton.isEnabled = true
+            self.pauseButton.isEnabled = false
+            self.rewindButton.isEnabled = true
+            self.fastForward5.isEnabled = true
+            self.fastBackward5.isEnabled = true
+            self.startPracticeItem.isEnabled = false
+            self.endPracticeItem.isEnabled = false
+        case .playing:
+            self.playButton.isEnabled = false
+            self.pauseButton.isEnabled = true
+            self.rewindButton.isEnabled = true
+            self.fastForward5.isEnabled = true
+            self.fastBackward5.isEnabled = true
+            self.startPracticeItem.isEnabled = true
+            self.endPracticeItem.isEnabled = false
+        case .recording:
+            self.playButton.isEnabled = false
+            self.pauseButton.isEnabled = false
+            self.rewindButton.isEnabled = false
+            self.fastForward5.isEnabled = false
+            self.fastBackward5.isEnabled = false
+            self.startPracticeItem.isEnabled = false
+            self.endPracticeItem.isEnabled = true
+        }
+    }
     
     func realignReticleAndSongGraph()
     {
@@ -286,7 +339,7 @@ class SongGrapher : UIViewController
                         {
                             if let finalImage = try UIImage.drawPracticeItems(forSong: foundSong, withPixelsPerSecond: SongGrapher.pixelsPerSecond)
                             {
-                                self.putUpSongGraph(graph: finalImage)                                
+                                self.putUpSongGraph(graph: finalImage)
                             }
                         }
                         catch let err

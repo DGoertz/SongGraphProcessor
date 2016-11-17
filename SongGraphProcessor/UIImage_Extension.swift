@@ -66,8 +66,8 @@ extension UIImage
     static let kGraphColorTimeNumberLetters: UIColor = UIColor.white
     
     static let kGraphColorMarkerBase: UIColor        = UIColor.blue
-    static let kGraphColorStartMarker: UIColor       = UIColor.red
-    static let kGraphColorEndMarker: UIColor         = UIColor.red
+    static let kGraphColorStartMarker: UIColor       = UIColor.orange
+    static let kGraphColorEndMarker: UIColor         = UIColor.brown
     
     static let iPracticeErrorDomain: String          = "iPracticeErrorDomain"
 }

@@ -128,6 +128,15 @@
                     </view>
                     <toolbarItems/>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
+                    <connections>
+                        <outlet property="endPracticeItem" destination="wYy-2q-jz4" id="czD-6j-yXV"/>
+                        <outlet property="fastBackward5" destination="0Aw-We-Pcj" id="Xvt-eg-XPP"/>
+                        <outlet property="fastForward5" destination="fwD-qD-ab5" id="FV6-qQ-tSh"/>
+                        <outlet property="pauseButton" destination="Heh-U7-teS" id="3cv-hL-GpD"/>
+                        <outlet property="playButton" destination="noF-yy-PFd" id="9aN-Gg-KO0"/>
+                        <outlet property="rewindButton" destination="ryK-IX-Jq5" id="sKs-Io-Udg"/>
+                        <outlet property="startPracticeItem" destination="wnI-yg-O6U" id="uQR-nR-jhe"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="uto-pw-gaj" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
