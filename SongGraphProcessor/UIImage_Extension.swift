@@ -68,6 +68,7 @@ extension UIImage
     static let kGraphColorMarkerBase: UIColor        = UIColor.blue
     static let kGraphColorStartMarker: UIColor       = UIColor.orange
     static let kGraphColorEndMarker: UIColor         = UIColor.brown
+    static let kPracticeItemNameColor: UIColor       = UIColor.cyan
     
     static let iPracticeErrorDomain: String          = "iPracticeErrorDomain"
 }
@@ -234,7 +235,7 @@ extension UIImage
         }
     }
     
-    //MARK: samples has (-) values in it.
+    // MARK:
     class func drawAudioImageGraph(withSamples samples: Array<Int16>, songMaxSignal: Int, sampleCount: Int, channelCount: UInt32, pixelsPerSecond: UInt, songLengthInSecs: TimeInterval, maxImageHeight: Int) throws -> UIImage?
     {
         // So we will graph 2 channels where each wave has an upper and lower region with a space in the center and insets on the top and bottom:
@@ -527,6 +528,133 @@ extension UIImage
         
         inContext.restoreGState()
     }
+    
+    class func drawPracticeItems(forSong: Song,withPixelsPerSecond: CGFloat) throws -> UIImage?
+    {
+        if let hasGraph = forSong.graph
+        {
+            if var workingGraph = UIImage(data: hasGraph as Data)
+            {
+                if let practiceItems = forSong.getPracticeItems()
+                {
+                    for currentPracticeItem in practiceItems
+                    {
+                        do
+                        {
+                            workingGraph = try UIImage.draw(practiceItem: currentPracticeItem, onSongGraph: workingGraph, withPixelsPerSecond: withPixelsPerSecond)
+                        }
+                        catch let err
+                        {
+                            throw err
+                        }
+                    }
+                    return workingGraph
+                }
+            }
+        }
+        return nil
+    }
+    
+    class func draw(practiceItem: PracticeItem, onSongGraph: UIImage, withPixelsPerSecond: CGFloat) throws -> UIImage
+    {
+        do
+        {
+            let context: CGContext = try UIImage.getEditableImageContext(fromImage: onSongGraph)
+            
+            let baseMarkerColor = UIImage.kGraphColorMarkerBase.cgColor
+            let startMarkerColor = UIImage.kGraphColorStartMarker.cgColor
+            let endMarkerColor = UIImage.kGraphColorEndMarker.cgColor
+            
+            let halfHeight: CGFloat = onSongGraph.size.height / 2
+            
+            // Draw the Starter Marker Base.
+            context.setLineWidth(UIImage.kGraphMarkerBaseWidth)
+            let startX: CGFloat = CGFloat(practiceItem.startTime) * withPixelsPerSecond
+            context.move(to: CGPoint(x: startX, y: 0))
+            context.addLine(to: CGPoint(x: startX, y: CGFloat(UIImage.kGraphMarkerBaseHeight)))
+            context.setStrokeColor(baseMarkerColor)
+            context.strokePath()
+            
+            // Draw the rest of the Starter Marker.
+            context.setLineWidth(UIImage.kGraphStartMarkerWidth)
+            context.move(to: CGPoint(x: startX, y: UIImage.kGraphMarkerBaseHeight))
+            context.addLine(to: CGPoint(x: startX, y: onSongGraph.size.height))
+            context.setStrokeColor(startMarkerColor)
+            context.strokePath()
+            
+            // Draw the Start Marker Arrow.
+            context.move(to: CGPoint(x: startX, y: halfHeight))
+            context.addLine(to: CGPoint(x: startX + 40, y: halfHeight))
+            context.move(to: CGPoint(x: startX + 15, y: halfHeight - 10))
+            context.addLine(to: CGPoint(x: startX + 40, y: halfHeight))
+            context.move(to: CGPoint(x: startX + 15, y: halfHeight + 10))
+            context.addLine(to: CGPoint(x: startX + 40, y: halfHeight))
+            context.strokePath()
+            
+            // Draw the End Marker Base.
+            context.setLineWidth(UIImage.kGraphMarkerBaseWidth)
+            let endX: CGFloat = CGFloat(practiceItem.endTime) * withPixelsPerSecond
+            context.move(to: CGPoint(x: endX, y: 0))
+            context.addLine(to: CGPoint(x: endX, y: UIImage.kGraphMarkerBaseHeight))
+            context.setStrokeColor(baseMarkerColor)
+            context.strokePath()
+            
+            // Draw the rest of the End Marker.
+            context.move(to: CGPoint(x: endX, y: UIImage.kGraphMarkerBaseHeight))
+            context.addLine(to: CGPoint(x: endX, y: onSongGraph.size.height))
+            context.setStrokeColor(endMarkerColor)
+            context.strokePath()
+            
+            // Draw the End Marker Arrow.
+            context.move(to: CGPoint(x: endX, y: halfHeight))
+            context.addLine(to: CGPoint(x: endX - 40, y: halfHeight))
+            context.move(to: CGPoint(x: endX - 15, y: halfHeight - 10))
+            context.addLine(to: CGPoint(x: endX - 40, y: halfHeight))
+            context.move(to: CGPoint(x: endX - 15, y: halfHeight + 10))
+            context.addLine(to: CGPoint(x: endX - 40, y: halfHeight))
+            context.strokePath()
+            
+            guard let printingFont: UIFont = UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize))
+                else
+            {
+                throw UIImageErrors.fontNotLoaded(errorMessage: "Unable to load font \(UIImage.kFontName) in \(#function)!")
+            }
+            let printPoint: CGPoint = CGPoint(x: startX + ((endX - startX) / 2), y: onSongGraph.size.height / 2)
+            self.printPI(name: practiceItem.name!, onContext: context, atPoint: printPoint, withFont: printingFont)
+            // Create new image
+            if let newImage = UIGraphicsGetImageFromCurrentImageContext()
+            {
+                // Tidy up
+                UIGraphicsEndImageContext()
+                
+                return newImage
+            }
+            throw UIImageErrors.failedToGetImageFromContext(errorMessage: "Unable to obtain Image from Graphics Context after drawing a Practice Item!")
+        }
+        catch let err
+        {
+            throw err
+        }
+    }
+    
+    class func printPI(name: String, onContext: CGContext, atPoint: CGPoint, withFont: UIFont)
+    {
+        onContext.saveGState()
+        let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: withFont.fontName, size: withFont.pointSize) as Any, NSForegroundColorAttributeName : UIImage.kPracticeItemNameColor]
+        let valueToBePrinted: NSString = name as NSString
+        let textSize: CGSize = valueToBePrinted.size(attributes: fontAttributes)
+        let halfTextWidth: CGFloat = textSize.width / 2
+        let quarterTextHeight: CGFloat = textSize.height / 4
+        // Draw the text.
+        onContext.setShouldAntialias(true)
+        onContext.setTextDrawingMode(CGTextDrawingMode.fill)
+        onContext.setStrokeColor(UIImage.kPracticeItemNameColor.cgColor)
+        // Have to invert the Y coordinate system.
+        onContext.textMatrix = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0)
+        let textPoint: CGPoint = CGPoint(x: atPoint.x - halfTextWidth, y: atPoint.y + quarterTextHeight)
+        valueToBePrinted.draw(at: textPoint, withAttributes: fontAttributes)
+        onContext.restoreGState()
+    }
 }
 
 // MARK: Handy Factories.
@@ -563,98 +691,12 @@ extension UIImage
             throw UIImageErrors.graphicsContextMissing(errorMessage: "Failed to obtain a Graphics Context!")
         }
         // We have to do this because Quartz has a bottom oriented and inverted coordinate system.
+        // MARK: Maybe take out!
+        context.saveGState()
         context.translateBy(x: 0, y: fromImage.size.height)
         context.scaleBy(x: 1.0, y: -1.0)
         context.draw(hasImage, in: CGRect(x: 0, y: 0, width: fromImage.size.width, height: fromImage.size.height))
+        context.restoreGState()
         return context
-    }
-    
-    class func drawPracticeItems(forSong: Song,withPixelsPerSecond: CGFloat) throws -> UIImage?
-    {
-        if let hasGraph = forSong.graph
-        {
-            if var workingGraph = UIImage(data: hasGraph as Data)
-            {
-                if let practiceItems = forSong.getPracticeItems()
-                {
-                    for currentPracticeItem in practiceItems
-                    {
-                        do
-                        {
-                            workingGraph = try UIImage.draw(practiceItem: currentPracticeItem, onSongGraph: workingGraph, withPixelsPerSecond: withPixelsPerSecond)
-                        }
-                        catch let err
-                        {
-                            throw err
-                        }
-                    }
-                    return workingGraph
-                }
-            }
-        }
-        return nil
-    }
-    
-    class func draw(practiceItem: PracticeItem, onSongGraph: UIImage, withPixelsPerSecond: CGFloat) throws -> UIImage
-    {
-        do
-        {
-            let context: CGContext = try UIImage.getEditableImageContext(fromImage: onSongGraph)
-            let baseMarkerColor = UIImage.kGraphColorMarkerBase.cgColor
-            let startMarkerColor = UIImage.kGraphColorStartMarker.cgColor
-            let endMarkerColor = UIImage.kGraphColorEndMarker.cgColor
-            
-            // Draw Top Starter Marker Base.
-            context.setLineWidth(UIImage.kGraphMarkerBaseWidth)
-            context.move(to: CGPoint(x: CGFloat(practiceItem.startTime) * withPixelsPerSecond, y: 0))
-            context.addLine(to: CGPoint(x: CGFloat(practiceItem.startTime) * withPixelsPerSecond, y: CGFloat(UIImage.kGraphMarkerBaseHeight)))
-            context.setStrokeColor(baseMarkerColor)
-            context.strokePath()
-            
-            // Draw Bottom Starter Marker Base.
-            context.move(to: CGPoint(x: CGFloat(practiceItem.startTime) * withPixelsPerSecond, y: onSongGraph.size.height - UIImage.kGraphMarkerBaseHeight))
-            context.addLine(to: CGPoint(x: CGFloat(practiceItem.startTime) * withPixelsPerSecond, y: onSongGraph.size.height))
-            context.strokePath()
-
-            // Draw the Starter Marker.
-            context.setLineWidth(UIImage.kGraphStartMarkerWidth)
-            context.move(to: CGPoint(x: CGFloat(practiceItem.startTime) * withPixelsPerSecond, y: UIImage.kGraphMarkerBaseHeight))
-            context.addLine(to: CGPoint(x: CGFloat(practiceItem.startTime) * withPixelsPerSecond, y: onSongGraph.size.height - UIImage.kGraphMarkerBaseHeight))
-            context.setStrokeColor(startMarkerColor)
-            context.strokePath()
-
-            context.setLineWidth(UIImage.kGraphMarkerBaseWidth)
-            context.move(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: 0))
-            context.addLine(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: UIImage.kGraphMarkerBaseHeight))
-            context.setStrokeColor(baseMarkerColor)
-            context.strokePath()
-
-            // Draw Bottom End Marker Base.
-            context.move(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: onSongGraph.size.height - UIImage.kGraphMarkerBaseHeight))
-            context.addLine(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: onSongGraph.size.height - UIImage.kGraphMarkerBaseHeight))
-            context.addLine(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: onSongGraph.size.height))
-            context.strokePath()
-            
-            // Draw the End Marker.
-            context.setLineWidth(UIImage.kGraphEndMarkerWidth)
-            context.move(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: UIImage.kGraphMarkerBaseHeight))
-            context.addLine(to: CGPoint(x: CGFloat(practiceItem.endTime) * withPixelsPerSecond, y: onSongGraph.size.height - UIImage.kGraphMarkerBaseHeight))
-            context.setStrokeColor(endMarkerColor)
-            context.strokePath()
-
-            // Create new image
-            if let newImage = UIGraphicsGetImageFromCurrentImageContext()
-            {
-                // Tidy up
-                UIGraphicsEndImageContext()
-                
-                return newImage
-            }
-            throw UIImageErrors.failedToGetImageFromContext(errorMessage: "Unable to obtain Image from Graphics Context after drawing a Practice Item!")
-        }
-        catch let err
-        {
-            throw err
-        }
     }
 }

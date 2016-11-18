@@ -139,38 +139,103 @@ class SongGrapher : UIViewController
             if self.songPlayer!.isPlaying
             {
                 self.currentPI!.endTime = self.songPlayer!.currentTime
-                do
+                self.getPracticeItemName(onViewController: self)
+                // Have to pause it here since the Ok button doesn't run till
+                // much later.
+                self.currentMode = .paused
+                self.songPlayer!.pause()
+            }
+        }
+    }
+    
+    func getPracticeItemName(onViewController: UIViewController)
+    {
+        let box: UIAlertController = UIAlertController(title: "Practice Item Name", message: "Enter a name?", preferredStyle: .alert)
+        box.addTextField(configurationHandler: {
+            (textField)
+            
+            in
+            
+            textField.placeholder = "Enter a 3 character name."
+            textField.addTarget(self, action: #selector(self.textFieldDidChange), for: UIControlEvents.editingChanged)
+        })
+        let okButton: UIAlertAction = UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: {
+
+            (UIAlertAction) -> Swift.Void
+            
+            in
+            
+            if let hasTextFields = box.textFields
+            {
+                if let hasTextField = hasTextFields.first
                 {
-                    try self.context.save()
-                    if let newSongGraph: UIImage = try UIImage.drawPracticeItems(forSong: self.song!, withPixelsPerSecond: SongGrapher.pixelsPerSecond)
+                    if let hasText = hasTextField.text
                     {
-                        self.putUpSongGraph(graph: newSongGraph)
-                        self.realignReticleAndSongGraph()
-                        self.currentMode = .paused
-                        self.songPlayer!.pause()
-                        self.currentPI = nil
+                        self.persistPracticeItem(withName: hasText.uppercased())
                     }
                 }
-                catch UIImageErrors.imageIsNotCGImage
+            }
+        })
+        box.addAction(okButton)
+        okButton.isEnabled = false
+        
+        onViewController.present(box, animated: true, completion: nil)
+        
+    }
+    
+    @objc func textFieldDidChange(theTextField: UITextField) -> Void
+    {
+        if let alertViewController: UIAlertController = self.presentedViewController as! UIAlertController?
+        {
+            if let textFields = alertViewController.textFields
+            {
+                if let hasTextField = textFields.first
                 {
-                    CentralCode.showError(message: "Song Graph could not be converted into a CG Image!", title: "Drawing Practice Item Error", onViewController: self)
-                }
-                catch UIImageErrors.graphicsContextMissing(errorMessage: let errorMessage)
-                {
-                    CentralCode.showError(message: "\(errorMessage)", title: "Drawing Practice Item Error", onViewController: self)
-                }
-                catch UIImageErrors.failedToGetImageFromContext
-                {
-                    CentralCode.showError(message: "Image could not be obtained from the Core Graphics Context!", title: "Drawing Practice Item Error", onViewController: self)
-                }
-                catch let err
-                {
-                    CentralCode.showError(message: "Error Saving Practice Item.  OS Error is: \(err.localizedDescription)", title: "DB Error", onViewController: self)
+                    if let hasText = hasTextField.text
+                    {
+                        if let alertOkAction = alertViewController.actions.last
+                        {
+                            alertOkAction.isEnabled = hasText.characters.count == 3
+                        }
+                    }
                 }
             }
         }
     }
     
+    func persistPracticeItem(withName: String)
+    {
+        do
+        {
+            if self.currentPI != nil
+            {
+                self.currentPI!.name = withName
+            }
+            try self.context.save()
+            if let newSongGraph: UIImage = try UIImage.drawPracticeItems(forSong: self.song!, withPixelsPerSecond: SongGrapher.pixelsPerSecond)
+            {
+                self.putUpSongGraph(graph: newSongGraph)
+                self.realignReticleAndSongGraph()
+                self.currentPI = nil
+            }
+        }
+        catch UIImageErrors.imageIsNotCGImage
+        {
+            CentralCode.showError(message: "Song Graph could not be converted into a CG Image!", title: "Drawing Practice Item Error", onViewController: self)
+        }
+        catch UIImageErrors.graphicsContextMissing(errorMessage: let errorMessage)
+        {
+            CentralCode.showError(message: "\(errorMessage)", title: "Drawing Practice Item Error", onViewController: self)
+        }
+        catch UIImageErrors.failedToGetImageFromContext
+        {
+            CentralCode.showError(message: "Image could not be obtained from the Core Graphics Context!", title: "Drawing Practice Item Error", onViewController: self)
+        }
+        catch let err
+        {
+            CentralCode.showError(message: "Error Saving Practice Item.  OS Error is: \(err.localizedDescription)", title: "DB Error", onViewController: self)
+        }
+    }
     // MARK: UIView Methods.
     
     override func viewDidAppear(_ animated: Bool)
