@@ -16,6 +16,7 @@ import CoreData
 extension UIImage
 {
     // MARK: Constants.
+    static let tabBarHeight:    CGFloat                    = 45
     static let kFontName: String                           = "ringBearer"
     static let kFontSize: Int                              = 14
     static let kPIFontSize: Int                            = 20
@@ -510,7 +511,6 @@ extension UIImage
     {
         // Preserve callers Context by pushing it onto a stack.
         inContext.saveGState()
-        
         let timeNumberColor: UIColor = UIImage.kGraphColorTimeNumberMarkers
         let timeLineLetterColor: UIColor = UIImage.kGraphColorTimeNumberLetters
         let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: withFont.fontName, size: withFont.pointSize) as Any, NSForegroundColorAttributeName : timeNumberColor]
@@ -522,11 +522,9 @@ extension UIImage
         inContext.setShouldAntialias(true)
         inContext.setTextDrawingMode(CGTextDrawingMode.fill)
         inContext.setStrokeColor(timeLineLetterColor.cgColor)
-        // Have to invert the Y coordinate system.
         inContext.textMatrix = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0)
         let textPoint: CGPoint = CGPoint(x: atPoint.x - halfTextWidth, y: atPoint.y + quarterTextHeight)
         valueToBePrinted.draw(at: textPoint, withAttributes: fontAttributes)
-        
         inContext.restoreGState()
     }
     
@@ -561,6 +559,10 @@ extension UIImage
         do
         {
             let context: CGContext = try UIImage.getEditableImageContext(fromImage: onSongGraph)
+            context.saveGState()
+            
+            context.translateBy(x: 0, y: onSongGraph.size.height)
+            context.scaleBy(x: 1.0, y: -1.0)
             
             let baseMarkerColor = UIImage.kGraphColorMarkerBase.cgColor
             let startMarkerColor = UIImage.kGraphColorStartMarker.cgColor
@@ -571,14 +573,14 @@ extension UIImage
             // Draw the Starter Marker Base.
             context.setLineWidth(UIImage.kGraphMarkerBaseWidth)
             let startX: CGFloat = CGFloat(practiceItem.startTime) * withPixelsPerSecond
-            context.move(to: CGPoint(x: startX, y: 0))
-            context.addLine(to: CGPoint(x: startX, y: CGFloat(UIImage.kGraphMarkerBaseHeight)))
+            context.move(to: CGPoint(x: startX, y: UIImage.tabBarHeight))
+            context.addLine(to: CGPoint(x: startX, y: UIImage.tabBarHeight + CGFloat(UIImage.kGraphMarkerBaseHeight)))
             context.setStrokeColor(baseMarkerColor)
             context.strokePath()
             
             // Draw the rest of the Starter Marker.
             context.setLineWidth(UIImage.kGraphStartMarkerWidth)
-            context.move(to: CGPoint(x: startX, y: UIImage.kGraphMarkerBaseHeight))
+            context.move(to: CGPoint(x: startX, y: UIImage.tabBarHeight + UIImage.kGraphMarkerBaseHeight))
             context.addLine(to: CGPoint(x: startX, y: onSongGraph.size.height))
             context.setStrokeColor(startMarkerColor)
             context.strokePath()
@@ -595,14 +597,14 @@ extension UIImage
             // Draw the End Marker Base.
             context.setLineWidth(UIImage.kGraphMarkerBaseWidth)
             let endX: CGFloat = CGFloat(practiceItem.endTime) * withPixelsPerSecond
-            context.move(to: CGPoint(x: endX, y: 0))
-            context.addLine(to: CGPoint(x: endX, y: UIImage.kGraphMarkerBaseHeight))
+            context.move(to: CGPoint(x: endX, y: UIImage.tabBarHeight))
+            context.addLine(to: CGPoint(x: endX, y: UIImage.tabBarHeight + UIImage.kGraphMarkerBaseHeight))
             context.setStrokeColor(baseMarkerColor)
             context.strokePath()
             
             // Draw the rest of the End Marker.
             context.setLineWidth(UIImage.kGraphEndMarkerWidth)
-            context.move(to: CGPoint(x: endX, y: UIImage.kGraphMarkerBaseHeight))
+            context.move(to: CGPoint(x: endX, y: UIImage.tabBarHeight + UIImage.kGraphMarkerBaseHeight))
             context.addLine(to: CGPoint(x: endX, y: onSongGraph.size.height))
             context.setStrokeColor(endMarkerColor)
             context.strokePath()
@@ -628,7 +630,7 @@ extension UIImage
             {
                 // Tidy up
                 UIGraphicsEndImageContext()
-                
+                context.restoreGState()
                 return newImage
             }
             throw UIImageErrors.failedToGetImageFromContext(errorMessage: "Unable to obtain Image from Graphics Context after drawing a Practice Item!")
@@ -651,7 +653,6 @@ extension UIImage
         onContext.setShouldAntialias(true)
         onContext.setTextDrawingMode(CGTextDrawingMode.fill)
         onContext.setStrokeColor(UIImage.kPracticeItemNameColor.cgColor)
-        // Have to invert the Y coordinate system.
         onContext.textMatrix = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0)
         let textPoint: CGPoint = CGPoint(x: atPoint.x - halfTextWidth, y: atPoint.y + quarterTextHeight)
         valueToBePrinted.draw(at: textPoint, withAttributes: fontAttributes)
@@ -693,11 +694,11 @@ extension UIImage
             throw UIImageErrors.graphicsContextMissing(errorMessage: "Failed to obtain a Graphics Context!")
         }
         // We have to do this because Quartz has a bottom oriented and inverted coordinate system.
-        //context.saveGState()
+        context.saveGState()
         context.translateBy(x: 0, y: fromImage.size.height)
         context.scaleBy(x: 1.0, y: -1.0)
         context.draw(hasImage, in: CGRect(x: 0, y: 0, width: fromImage.size.width, height: fromImage.size.height))
-        //context.restoreGState()
+        context.restoreGState()
         return context
     }
 }
