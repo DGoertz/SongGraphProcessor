@@ -18,6 +18,7 @@ extension UIImage
     // MARK: Constants.
     static let kFontName: String                           = "ringBearer"
     static let kFontSize: Int                              = 14
+    static let kPIFontSize: Int                            = 20
     
     static let kAlbumArtworkSize: Int                      = 63
     
@@ -42,7 +43,7 @@ extension UIImage
     static let kTimeLineNumberLineTextMarkerOffset: Int    = 15
     static let kTimeLineNumberLineTextMarkerMargin: Int    = 4
     
-    static let kGraphMarkerBaseWidth: CGFloat              = 5
+    static let kGraphMarkerBaseWidth: CGFloat              = 10
     static let kGraphMarkerBaseHeight: CGFloat             = 20
     static let kGraphStartMarkerWidth: CGFloat             = 3
     static let kGraphEndMarkerWidth: CGFloat               = 3
@@ -600,6 +601,7 @@ extension UIImage
             context.strokePath()
             
             // Draw the rest of the End Marker.
+            context.setLineWidth(UIImage.kGraphEndMarkerWidth)
             context.move(to: CGPoint(x: endX, y: UIImage.kGraphMarkerBaseHeight))
             context.addLine(to: CGPoint(x: endX, y: onSongGraph.size.height))
             context.setStrokeColor(endMarkerColor)
@@ -614,7 +616,7 @@ extension UIImage
             context.addLine(to: CGPoint(x: endX - 40, y: halfHeight))
             context.strokePath()
             
-            guard let printingFont: UIFont = UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize))
+            guard let printingFont: UIFont = UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kPIFontSize))
                 else
             {
                 throw UIImageErrors.fontNotLoaded(errorMessage: "Unable to load font \(UIImage.kFontName) in \(#function)!")
@@ -691,12 +693,11 @@ extension UIImage
             throw UIImageErrors.graphicsContextMissing(errorMessage: "Failed to obtain a Graphics Context!")
         }
         // We have to do this because Quartz has a bottom oriented and inverted coordinate system.
-        // MARK: Maybe take out!
-        context.saveGState()
+        //context.saveGState()
         context.translateBy(x: 0, y: fromImage.size.height)
         context.scaleBy(x: 1.0, y: -1.0)
         context.draw(hasImage, in: CGRect(x: 0, y: 0, width: fromImage.size.width, height: fromImage.size.height))
-        context.restoreGState()
+        //context.restoreGState()
         return context
     }
 }

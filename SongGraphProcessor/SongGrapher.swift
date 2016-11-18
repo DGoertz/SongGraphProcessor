@@ -55,7 +55,6 @@ class SongGrapher : UIViewController
     @IBOutlet weak var endPracticeItem: UIBarButtonItem!
     
     // MARK: GUI Contol Methods.
-    
     @IBAction func playPressed(_ sender: UIBarButtonItem) {
         if let songPlayer = self.songPlayer
         {
@@ -150,8 +149,8 @@ class SongGrapher : UIViewController
     
     func getPracticeItemName(onViewController: UIViewController)
     {
-        let box: UIAlertController = UIAlertController(title: "Practice Item Name", message: "Enter a name?", preferredStyle: .alert)
-        box.addTextField(configurationHandler: {
+        let dialogBox: UIAlertController = UIAlertController(title: "Practice Item Name", message: "Enter a name?", preferredStyle: .alert)
+        dialogBox.addTextField(configurationHandler: {
             (textField)
             
             in
@@ -160,44 +159,30 @@ class SongGrapher : UIViewController
             textField.addTarget(self, action: #selector(self.textFieldDidChange), for: UIControlEvents.editingChanged)
         })
         let okButton: UIAlertAction = UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: {
-
+            
             (UIAlertAction) -> Swift.Void
             
             in
             
-            if let hasTextFields = box.textFields
+            if let textFields = dialogBox.textFields, let textField = textFields.first, let text = textField.text
             {
-                if let hasTextField = hasTextFields.first
-                {
-                    if let hasText = hasTextField.text
-                    {
-                        self.persistPracticeItem(withName: hasText.uppercased())
-                    }
-                }
+                self.persistPracticeItem(withName: text.uppercased())
             }
         })
-        box.addAction(okButton)
+        dialogBox.addAction(okButton)
         okButton.isEnabled = false
-        
-        onViewController.present(box, animated: true, completion: nil)
-        
+        onViewController.present(dialogBox, animated: true, completion: nil)
     }
     
     @objc func textFieldDidChange(theTextField: UITextField) -> Void
     {
         if let alertViewController: UIAlertController = self.presentedViewController as! UIAlertController?
         {
-            if let textFields = alertViewController.textFields
+            if let textFields = alertViewController.textFields, let textField = textFields.first, let text = textField.text
             {
-                if let hasTextField = textFields.first
+                if let alertOkAction = alertViewController.actions.last
                 {
-                    if let hasText = hasTextField.text
-                    {
-                        if let alertOkAction = alertViewController.actions.last
-                        {
-                            alertOkAction.isEnabled = hasText.characters.count == 3
-                        }
-                    }
+                    alertOkAction.isEnabled = text.characters.count == 3
                 }
             }
         }
@@ -287,37 +272,6 @@ class SongGrapher : UIViewController
     
     // MARK: Utility Methods.
     
-    func setControlsToState()
-    {
-        switch self.currentMode
-        {
-        case .paused:
-            self.playButton.isEnabled = true
-            self.pauseButton.isEnabled = false
-            self.rewindButton.isEnabled = true
-            self.fastForward5.isEnabled = true
-            self.fastBackward5.isEnabled = true
-            self.startPracticeItem.isEnabled = false
-            self.endPracticeItem.isEnabled = false
-        case .playing:
-            self.playButton.isEnabled = false
-            self.pauseButton.isEnabled = true
-            self.rewindButton.isEnabled = true
-            self.fastForward5.isEnabled = true
-            self.fastBackward5.isEnabled = true
-            self.startPracticeItem.isEnabled = true
-            self.endPracticeItem.isEnabled = false
-        case .recording:
-            self.playButton.isEnabled = false
-            self.pauseButton.isEnabled = false
-            self.rewindButton.isEnabled = false
-            self.fastForward5.isEnabled = false
-            self.fastBackward5.isEnabled = false
-            self.startPracticeItem.isEnabled = false
-            self.endPracticeItem.isEnabled = true
-        }
-    }
-    
     func realignReticleAndSongGraph()
     {
         let newPosition = CGPoint(x: CGFloat(self.songPlayer!.currentTime) * SongGrapher.pixelsPerSecond, y: self.scrollView!.center.y)
@@ -384,7 +338,7 @@ class SongGrapher : UIViewController
         return nil
     }
     
-    // Initialize GUI.
+    // GUI Centric Methods.
     
     func loadSongGraph() -> Void
     {
@@ -494,6 +448,37 @@ class SongGrapher : UIViewController
                 CentralCode.showError(message: "\(err.localizedDescription)", title: "Song Graph Error", onViewController: self)
                 return
             }
+        }
+    }
+    
+    func setControlsToState()
+    {
+        switch self.currentMode
+        {
+        case .paused:
+            self.playButton.isEnabled = true
+            self.pauseButton.isEnabled = false
+            self.rewindButton.isEnabled = true
+            self.fastForward5.isEnabled = true
+            self.fastBackward5.isEnabled = true
+            self.startPracticeItem.isEnabled = false
+            self.endPracticeItem.isEnabled = false
+        case .playing:
+            self.playButton.isEnabled = false
+            self.pauseButton.isEnabled = true
+            self.rewindButton.isEnabled = true
+            self.fastForward5.isEnabled = true
+            self.fastBackward5.isEnabled = true
+            self.startPracticeItem.isEnabled = true
+            self.endPracticeItem.isEnabled = false
+        case .recording:
+            self.playButton.isEnabled = false
+            self.pauseButton.isEnabled = false
+            self.rewindButton.isEnabled = false
+            self.fastForward5.isEnabled = false
+            self.fastBackward5.isEnabled = false
+            self.startPracticeItem.isEnabled = false
+            self.endPracticeItem.isEnabled = true
         }
     }
     
