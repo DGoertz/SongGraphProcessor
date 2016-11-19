@@ -379,7 +379,6 @@ extension UIImage
                 
                 pixels = pixels * sampleAdjustmentFactor
                 
-                
                 let lineStartPoint = CGPoint(x: CGFloat(currentColumn), y: centerRight - pixels)
                 let lineEndPoint = CGPoint(x: CGFloat(currentColumn), y: centerRight + pixels)
                 context.setStrokeColor(rightColor)
@@ -522,7 +521,6 @@ extension UIImage
         inContext.setShouldAntialias(true)
         inContext.setTextDrawingMode(CGTextDrawingMode.fill)
         inContext.setStrokeColor(timeLineLetterColor.cgColor)
-        inContext.textMatrix = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0)
         let textPoint: CGPoint = CGPoint(x: atPoint.x - halfTextWidth, y: atPoint.y + quarterTextHeight)
         valueToBePrinted.draw(at: textPoint, withAttributes: fontAttributes)
         inContext.restoreGState()
@@ -559,10 +557,6 @@ extension UIImage
         do
         {
             let context: CGContext = try UIImage.getEditableImageContext(fromImage: onSongGraph)
-            context.saveGState()
-            
-            context.translateBy(x: 0, y: onSongGraph.size.height)
-            context.scaleBy(x: 1.0, y: -1.0)
             
             let baseMarkerColor = UIImage.kGraphColorMarkerBase.cgColor
             let startMarkerColor = UIImage.kGraphColorStartMarker.cgColor
@@ -585,15 +579,6 @@ extension UIImage
             context.setStrokeColor(startMarkerColor)
             context.strokePath()
             
-            // Draw the Start Marker Arrow.
-            context.move(to: CGPoint(x: startX, y: halfHeight))
-            context.addLine(to: CGPoint(x: startX + 40, y: halfHeight))
-            context.move(to: CGPoint(x: startX + 15, y: halfHeight - 10))
-            context.addLine(to: CGPoint(x: startX + 40, y: halfHeight))
-            context.move(to: CGPoint(x: startX + 15, y: halfHeight + 10))
-            context.addLine(to: CGPoint(x: startX + 40, y: halfHeight))
-            context.strokePath()
-            
             // Draw the End Marker Base.
             context.setLineWidth(UIImage.kGraphMarkerBaseWidth)
             let endX: CGFloat = CGFloat(practiceItem.endTime) * withPixelsPerSecond
@@ -608,29 +593,19 @@ extension UIImage
             context.addLine(to: CGPoint(x: endX, y: onSongGraph.size.height))
             context.setStrokeColor(endMarkerColor)
             context.strokePath()
-            
-            // Draw the End Marker Arrow.
-            context.move(to: CGPoint(x: endX, y: halfHeight))
-            context.addLine(to: CGPoint(x: endX - 40, y: halfHeight))
-            context.move(to: CGPoint(x: endX - 15, y: halfHeight - 10))
-            context.addLine(to: CGPoint(x: endX - 40, y: halfHeight))
-            context.move(to: CGPoint(x: endX - 15, y: halfHeight + 10))
-            context.addLine(to: CGPoint(x: endX - 40, y: halfHeight))
-            context.strokePath()
-            
+                     
             guard let printingFont: UIFont = UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kPIFontSize))
                 else
             {
                 throw UIImageErrors.fontNotLoaded(errorMessage: "Unable to load font \(UIImage.kFontName) in \(#function)!")
             }
-            let printPoint: CGPoint = CGPoint(x: startX + ((endX - startX) / 2), y: onSongGraph.size.height / 2)
-            self.printPI(name: practiceItem.name!, onContext: context, atPoint: printPoint, withFont: printingFont)
+            let printPoint: CGPoint = CGPoint(x: startX + ((endX - startX) / 2), y: halfHeight)
+            self.printPI(name: practiceItem.name!, onContext: context, atPoint: printPoint, withFont: printingFont, forSongGraph: onSongGraph)
             // Create new image
             if let newImage = UIGraphicsGetImageFromCurrentImageContext()
             {
                 // Tidy up
                 UIGraphicsEndImageContext()
-                context.restoreGState()
                 return newImage
             }
             throw UIImageErrors.failedToGetImageFromContext(errorMessage: "Unable to obtain Image from Graphics Context after drawing a Practice Item!")
@@ -641,7 +616,7 @@ extension UIImage
         }
     }
     
-    class func printPI(name: String, onContext: CGContext, atPoint: CGPoint, withFont: UIFont)
+    class func printPI(name: String, onContext: CGContext, atPoint: CGPoint, withFont: UIFont, forSongGraph: UIImage)
     {
         onContext.saveGState()
         let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: withFont.fontName, size: withFont.pointSize) as Any, NSForegroundColorAttributeName : UIImage.kPracticeItemNameColor]
@@ -653,7 +628,9 @@ extension UIImage
         onContext.setShouldAntialias(true)
         onContext.setTextDrawingMode(CGTextDrawingMode.fill)
         onContext.setStrokeColor(UIImage.kPracticeItemNameColor.cgColor)
-        onContext.textMatrix = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 0)
+        //onContext.translateBy(x: 0, y: forSongGraph.size.height - UIImage.tabBarHeight)
+        onContext.translateBy(x: 0, y: forSongGraph.size.height + UIImage.tabBarHeight)
+        onContext.scaleBy(x: 1.0, y: -1.0)
         let textPoint: CGPoint = CGPoint(x: atPoint.x - halfTextWidth, y: atPoint.y + quarterTextHeight)
         valueToBePrinted.draw(at: textPoint, withAttributes: fontAttributes)
         onContext.restoreGState()
@@ -693,12 +670,12 @@ extension UIImage
         {
             throw UIImageErrors.graphicsContextMissing(errorMessage: "Failed to obtain a Graphics Context!")
         }
-        // We have to do this because Quartz has a bottom oriented and inverted coordinate system.
-        context.saveGState()
+        // We have to do this because Quartz has a bottom oriented and inverted coordinate
+        // system.  This changes the userSpaceToDeviceSpaceTransform property on
+        // the context.
         context.translateBy(x: 0, y: fromImage.size.height)
         context.scaleBy(x: 1.0, y: -1.0)
         context.draw(hasImage, in: CGRect(x: 0, y: 0, width: fromImage.size.width, height: fromImage.size.height))
-        context.restoreGState()
         return context
     }
 }
