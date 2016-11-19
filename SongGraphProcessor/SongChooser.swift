@@ -84,6 +84,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
         self.chosenSong = mediaItemCollection.items[0]
         if let hasChosenASong = self.chosenSong
         {
+            self.spinner = CentralCode.startSpinner(onView: self.view)
             guard let importCacheFileURL = BundleWrapper.getImportCacheFileURL(forSong: hasChosenASong)
                 else
             {
@@ -98,6 +99,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                     CentralCode.showError(message: "Failed to aquire a path for the temporary Import File!  Note: This file is not DRM protected so who knows why?", title: "Song Choice Error", onViewController: self)
                     self.statusLabel.text = "Failed to aquire a path for the temporary Import File!"
                 }
+                CentralCode.stopSpinner(self.spinner)
                 return
             }
             // Preceding code guarntees that the assetURL is not nil!
@@ -108,11 +110,11 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
             {
                 if try Song.doesSongExist(inContext: context, mpItem: hasChosenASong)
                 {
+                    CentralCode.stopSpinner(self.spinner)
                     self.performSegue(withIdentifier: SongChooser.segueToSongGrapherKey, sender: self)
                 }
                 else
                 {
-                    self.spinner = CentralCode.startSpinner(onView: self.view)
                     self.statusLabel.text = "Importing Song"
                     let importGuy = MediaImport()
                     try importGuy.doImport(inputURL, output: importCacheFileURL, completionCode:
@@ -126,8 +128,8 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                     {
                                         CentralCode.runInMainThread(code:
                                             {
-                                                CentralCode.stopSpinner(strongSelf.spinner)
                                                 strongSelf.statusLabel.text = "Import finished!"
+                                                CentralCode.stopSpinner(strongSelf.spinner)
                                                 strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapherKey, sender: self)
                                         })
                                     }
@@ -135,9 +137,9 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                     {
                                         CentralCode.runInMainThread(code:
                                             {
-                                                CentralCode.stopSpinner(strongSelf.spinner)
                                                 CentralCode.showError(message: "Import Status of music file is good but file was not found after copy?", title: "Import Error", onViewController: strongSelf)
                                                 strongSelf.statusLabel.text = "Status good but file not found?"
+                                                CentralCode.stopSpinner(strongSelf.spinner)
                                         })
                                     }
                                 }
@@ -146,7 +148,6 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                     CentralCode.runInMainThread(code:
                                         {
                                             strongSelf.statusLabel.text = "Imported not completed!"
-                                            CentralCode.stopSpinner(strongSelf.spinner)
                                             switch importGuy.status
                                             {
                                             case AVAssetExportSessionStatus.cancelled:
@@ -162,6 +163,7 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
                                             default:
                                                 CentralCode.showError(message: "Import Status is not completed.  Status is Fucked!", title: "Import Error", onViewController: strongSelf)
                                             }
+                                            CentralCode.stopSpinner(strongSelf.spinner)
                                     })
                                 }
                             }
@@ -171,8 +173,8 @@ class SongChooser: UIViewController, MPMediaPickerControllerDelegate
             }
             catch let error
             {
-                CentralCode.stopSpinner(self.spinner)
                 CentralCode.showError(message: error.localizedDescription, title: "Song Choice Error", onViewController: self)
+                CentralCode.stopSpinner(self.spinner)
             }
             
         }

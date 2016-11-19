@@ -342,9 +342,9 @@ class SongGrapher : UIViewController
     
     func loadSongGraph() -> Void
     {
-        self.spinner = CentralCode.startSpinner(onView: self.view)
         if let songChosen = songChosen
         {
+            self.spinner = CentralCode.startSpinner(onView: self.view)
             do
             {
                 if let foundSong = try Song.getSong(inContext: context, mpItem: songChosen)
@@ -373,16 +373,19 @@ class SongGrapher : UIViewController
             catch SongErrors.idIsNotUnique
             {
                 CentralCode.showError(message: "Two songs were found with the same ID!", title: "Song Read Error", onViewController: self)
+                CentralCode.stopSpinner(self.spinner)
                 return
             }
             catch SongErrors.selectFailed(errorMessage: let errorMessage)
             {
                 CentralCode.showError(message: errorMessage, title: "Song Read Error", onViewController: self)
+                CentralCode.stopSpinner(self.spinner)
                 return
             }
             catch let error
             {
                 CentralCode.showError(message: "Song not found - OS ERROR is: \(error.localizedDescription)", title: "Song Read Error", onViewController: self)
+                CentralCode.stopSpinner(self.spinner)
                 return
             }
             // Assumption at this point is:
@@ -391,7 +394,7 @@ class SongGrapher : UIViewController
             do
             {
                 let graphHeight = self.view.frame.height - SongGrapher.tabBarHeight
-                try UIImage.image(fromSong: songChosen, pixelsPerSecond: SongGrapher.pixelsPerSecond, graphMaxHeight: Int(graphHeight), completion:
+                try UIImage.getImage(fromSong: songChosen, pixelsPerSecond: SongGrapher.pixelsPerSecond, graphMaxHeight: Int(graphHeight), completion:
                     
                     {
                         
@@ -403,7 +406,6 @@ class SongGrapher : UIViewController
                         {
                             CentralCode.runInMainThread(code:
                                 {
-                                    
                                     // We've produced the Graph and don't need the Import file anymore.
                                     if BundleWrapper.doesImportCacheFileExist(forSong: songChosen)
                                     {
@@ -415,6 +417,8 @@ class SongGrapher : UIViewController
                                         catch let error
                                         {
                                             CentralCode.showError(message: "Failed to clean up Import Cache File after producing a Song Graph: \(importCacheFileURL).  OS error is: \(error.localizedDescription)", title: "File Deletion Error", onViewController: strongSelf)
+                                            CentralCode.stopSpinner(strongSelf.spinner)
+                                            return
                                         }
                                     }
                                     if let songImage = songImage
@@ -422,21 +426,23 @@ class SongGrapher : UIViewController
                                         strongSelf.songImage = songImage
                                         strongSelf.lastScreenHalfWidth = songImage.size.width - strongSelf.halfScreenWidth
                                         strongSelf.putUpSongGraph(graph: songImage)
-                                        CentralCode.stopSpinner(strongSelf.spinner)
                                         if let pngRepresentation = UIImagePNGRepresentation(songImage)
                                         {
                                             strongSelf.song = strongSelf.updateSong(inContext: strongSelf.context, aSong: songChosen, withGraph: pngRepresentation)
+                                            CentralCode.stopSpinner(strongSelf.spinner)
                                             return
                                         }
                                         else
                                         {
                                             CentralCode.showError(message: "Failed to convert the Song Graph Image to a PNG!", title: "Song Graph Error", onViewController: strongSelf)
+                                            CentralCode.stopSpinner(strongSelf.spinner)
                                             return
                                         }
                                     }
                                     else
                                     {
                                         CentralCode.showError(message: "Song Graph Image is nil!", title: "Song Graph Error", onViewController: strongSelf)
+                                        CentralCode.stopSpinner(strongSelf.spinner)
                                         return
                                     }
                             })
@@ -446,6 +452,7 @@ class SongGrapher : UIViewController
             catch let err
             {
                 CentralCode.showError(message: "\(err.localizedDescription)", title: "Song Graph Error", onViewController: self)
+                CentralCode.stopSpinner(self.spinner)
                 return
             }
         }

@@ -78,7 +78,7 @@ extension UIImage
 // MARK: Song Graphing Methods.
 extension UIImage
 {
-    class func image(fromSong: MPMediaItem, pixelsPerSecond: CGFloat, graphMaxHeight: Int, completion: @escaping (UIImage?) -> Void) throws -> Void
+    class func getImage(fromSong: MPMediaItem, pixelsPerSecond: CGFloat, graphMaxHeight: Int, completion: @escaping (UIImage?) -> Void) throws -> Void
     {
         // Need to do a quick check to see whether we already have the Image or
         // what is known as the Song Graph File.
@@ -593,7 +593,7 @@ extension UIImage
             context.addLine(to: CGPoint(x: endX, y: onSongGraph.size.height))
             context.setStrokeColor(endMarkerColor)
             context.strokePath()
-                     
+            
             guard let printingFont: UIFont = UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kPIFontSize))
                 else
             {
@@ -628,7 +628,6 @@ extension UIImage
         onContext.setShouldAntialias(true)
         onContext.setTextDrawingMode(CGTextDrawingMode.fill)
         onContext.setStrokeColor(UIImage.kPracticeItemNameColor.cgColor)
-        //onContext.translateBy(x: 0, y: forSongGraph.size.height - UIImage.tabBarHeight)
         onContext.translateBy(x: 0, y: forSongGraph.size.height + UIImage.tabBarHeight)
         onContext.scaleBy(x: 1.0, y: -1.0)
         let textPoint: CGPoint = CGPoint(x: atPoint.x - halfTextWidth, y: atPoint.y + quarterTextHeight)
