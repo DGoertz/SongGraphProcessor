@@ -17,7 +17,7 @@ enum ScreenMode
     case paused
 }
 
-class SongGrapher : UIViewController
+class SongGrapher : UIViewController, UIScrollViewDelegate
 {
     var currentMode: ScreenMode = .paused
     var songChosen: MPMediaItem?
@@ -55,6 +55,7 @@ class SongGrapher : UIViewController
     @IBOutlet weak var endPracticeItem: UIBarButtonItem!
     
     // MARK: GUI Contol Methods.
+    
     @IBAction func playPressed(_ sender: UIBarButtonItem) {
         if let songPlayer = self.songPlayer
         {
@@ -107,14 +108,14 @@ class SongGrapher : UIViewController
         if self.songChosen != nil
         {
             self.songPlayer!.currentTime = (self.songPlayer!.currentTime + 5) <= self.songChosen!.playbackDuration ? (self.songPlayer!.currentTime + 5) : self.songChosen!.playbackDuration
-            self.realignReticleAndSongGraph()
+            self.realignReticleAndSongGraphToSongPlayer()
         }
     }
     
     @IBAction func minus5(_ sender: UIBarButtonItem)
     {
         self.songPlayer!.currentTime = (self.songPlayer!.currentTime - 5 > 0) ? self.songPlayer!.currentTime - 5 : 0
-        self.realignReticleAndSongGraph()
+        self.realignReticleAndSongGraphToSongPlayer()
     }
     
     @IBAction func markStart(_ sender: UIBarButtonItem)
@@ -146,6 +147,106 @@ class SongGrapher : UIViewController
             }
         }
     }
+    
+    // MARK: UIView Methods.
+    
+    override func viewDidAppear(_ animated: Bool)
+    {
+        super.viewDidAppear(animated)
+        self.view.isUserInteractionEnabled = true
+        self.halfScreenWidth = self.view.frame.width / 2
+        self.loadSongGraph()
+        self.loadSongPlayer()
+        self.startTimer()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool)
+    {
+        if let timer = self.timer
+        {
+            self.stopTimer(theTimer: timer)
+        }
+    }
+    
+    override func didReceiveMemoryWarning()
+    {
+        super.didReceiveMemoryWarning()
+    }
+    
+    // MARK: Timer Methods.
+    
+    func startTimer() -> Void
+    {
+        self.timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block:
+            {
+                (theTime)
+                in
+                
+                self.setControlsToState()
+                if self.songPlayer != nil && self.reticle != nil  && self.scrollView != nil
+                {
+                    if self.songPlayer!.isPlaying
+                    {
+                        self.realignReticleAndSongGraphToSongPlayer()
+                    }
+                }
+        })
+    }
+    
+    func stopTimer(theTimer: Timer) -> Void
+    {
+        theTimer.invalidate()
+    }
+    
+    func setControlsToState()
+    {
+        switch self.currentMode
+        {
+        case .paused:
+            self.playButton.isEnabled = true
+            self.pauseButton.isEnabled = false
+            self.rewindButton.isEnabled = true
+            self.fastForward5.isEnabled = true
+            self.fastBackward5.isEnabled = true
+            self.startPracticeItem.isEnabled = false
+            self.endPracticeItem.isEnabled = false
+        case .playing:
+            self.playButton.isEnabled = false
+            self.pauseButton.isEnabled = true
+            self.rewindButton.isEnabled = true
+            self.fastForward5.isEnabled = true
+            self.fastBackward5.isEnabled = true
+            self.startPracticeItem.isEnabled = true
+            self.endPracticeItem.isEnabled = false
+        case .recording:
+            self.playButton.isEnabled = false
+            self.pauseButton.isEnabled = false
+            self.rewindButton.isEnabled = false
+            self.fastForward5.isEnabled = false
+            self.fastBackward5.isEnabled = false
+            self.startPracticeItem.isEnabled = false
+            self.endPracticeItem.isEnabled = true
+        }
+    }
+    
+    // MARK: SongPlayer Methods.
+    
+    func loadSongPlayer() -> Void
+    {
+        if let songChosen = self.songChosen, let url = songChosen.assetURL
+        {
+            do
+            {
+                self.songPlayer = try AVAudioPlayer(contentsOf: url)
+            }
+            catch let err
+            {
+                CentralCode.showError(message: "Failed to initialize the Song Player with the Chosen Song!  OS Error is: \(err.localizedDescription)", title: "Song Player Init Error", onViewController: self)
+            }
+        }
+    }
+    
+    // MARK: Text Field Methods.
     
     func getPracticeItemName(onViewController: UIViewController)
     {
@@ -188,6 +289,8 @@ class SongGrapher : UIViewController
         }
     }
     
+    // MARK: Db Methods.
+    
     func persistPracticeItem(withName: String)
     {
         do
@@ -200,7 +303,7 @@ class SongGrapher : UIViewController
             if let newSongGraph: UIImage = try UIImage.drawPracticeItems(forSong: self.song!, withPixelsPerSecond: SongGrapher.pixelsPerSecond)
             {
                 self.putUpSongGraph(graph: newSongGraph)
-                self.realignReticleAndSongGraph()
+                self.realignReticleAndSongGraphToSongPlayer()
                 self.currentPI = nil
             }
         }
@@ -221,82 +324,9 @@ class SongGrapher : UIViewController
             CentralCode.showError(message: "Error Saving Practice Item.  OS Error is: \(err.localizedDescription)", title: "DB Error", onViewController: self)
         }
     }
-    // MARK: UIView Methods.
-    
-    override func viewDidAppear(_ animated: Bool)
-    {
-        super.viewDidAppear(animated)
-        self.halfScreenWidth = self.view.frame.width / 2
-        self.loadSongGraph()
-        self.loadSongPlayer()
-        self.startTimer()
-    }
-    
-    override func viewWillDisappear(_ animated: Bool)
-    {
-        if let timer = self.timer
-        {
-            self.stopTimer(theTimer: timer)
-        }
-    }
-    
-    override func didReceiveMemoryWarning()
-    {
-        super.didReceiveMemoryWarning()
-    }
-    
-    // MARK: Timer Methods.
-    
-    func startTimer() -> Void
-    {
-        self.timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block:
-            {
-                (theTime)
-                in
-                
-                self.setControlsToState()
-                if self.songPlayer != nil && self.reticle != nil  && self.scrollView != nil
-                {
-                    if self.songPlayer!.isPlaying
-                    {
-                        self.realignReticleAndSongGraph()
-                    }
-                }
-        })
-    }
-    
-    func stopTimer(theTimer: Timer) -> Void
-    {
-        theTimer.invalidate()
-    }
-    
-    // MARK: Utility Methods.
-    
-    func realignReticleAndSongGraph()
-    {
-        let newPosition = CGPoint(x: CGFloat(self.songPlayer!.currentTime) * SongGrapher.pixelsPerSecond, y: self.scrollView!.center.y)
-        if newPosition.x > self.halfScreenWidth && newPosition.x < self.lastScreenHalfWidth
-        {
-            self.reticle!.center = newPosition
-            self.scrollView!.contentOffset = CGPoint(x: newPosition.x - self.halfScreenWidth, y: 0)
-        }
-        else
-        {
-            self.reticle!.center = newPosition
-        }
-    }
-    
-    func rewindReticleAndSongGraphImage()
-    {
-        if self.scrollView != nil && self.reticle != nil
-        {
-            self.scrollView!.contentOffset = CGPoint(x: 0, y: 0)
-            self.reticle!.center = CGPoint(x: 0, y: self.scrollView!.center.y)
-        }
-    }
     
     // Currently I wait until I have a Graph before saving the Song.
-    func updateSong(inContext: NSManagedObjectContext, aSong: MPMediaItem, withGraph: Data) -> Song?
+    func updateSongInDb(inContext: NSManagedObjectContext, aSong: MPMediaItem, withGraph: Data) -> Song?
     {
         do
         {
@@ -337,8 +367,6 @@ class SongGrapher : UIViewController
         }
         return nil
     }
-    
-    // GUI Centric Methods.
     
     func loadSongGraph() -> Void
     {
@@ -428,7 +456,7 @@ class SongGrapher : UIViewController
                                         strongSelf.putUpSongGraph(graph: songImage)
                                         if let pngRepresentation = UIImagePNGRepresentation(songImage)
                                         {
-                                            strongSelf.song = strongSelf.updateSong(inContext: strongSelf.context, aSong: songChosen, withGraph: pngRepresentation)
+                                            strongSelf.song = strongSelf.updateSongInDb(inContext: strongSelf.context, aSong: songChosen, withGraph: pngRepresentation)
                                             CentralCode.stopSpinner(strongSelf.spinner)
                                             return
                                         }
@@ -458,34 +486,36 @@ class SongGrapher : UIViewController
         }
     }
     
-    func setControlsToState()
+    // MARK: Artwork Methods.
+    
+    func realignSongPlayerToReticle()
     {
-        switch self.currentMode
+        if self.reticle != nil && self.songPlayer != nil
         {
-        case .paused:
-            self.playButton.isEnabled = true
-            self.pauseButton.isEnabled = false
-            self.rewindButton.isEnabled = true
-            self.fastForward5.isEnabled = true
-            self.fastBackward5.isEnabled = true
-            self.startPracticeItem.isEnabled = false
-            self.endPracticeItem.isEnabled = false
-        case .playing:
-            self.playButton.isEnabled = false
-            self.pauseButton.isEnabled = true
-            self.rewindButton.isEnabled = true
-            self.fastForward5.isEnabled = true
-            self.fastBackward5.isEnabled = true
-            self.startPracticeItem.isEnabled = true
-            self.endPracticeItem.isEnabled = false
-        case .recording:
-            self.playButton.isEnabled = false
-            self.pauseButton.isEnabled = false
-            self.rewindButton.isEnabled = false
-            self.fastForward5.isEnabled = false
-            self.fastBackward5.isEnabled = false
-            self.startPracticeItem.isEnabled = false
-            self.endPracticeItem.isEnabled = true
+            self.songPlayer!.currentTime = TimeInterval(self.reticle!.center.x / SongGrapher.pixelsPerSecond)
+        }
+    }
+    
+    func realignReticleAndSongGraphToSongPlayer()
+    {
+        let newPosition = CGPoint(x: CGFloat(self.songPlayer!.currentTime) * SongGrapher.pixelsPerSecond, y: self.scrollView!.center.y)
+        if newPosition.x > self.halfScreenWidth && newPosition.x < self.lastScreenHalfWidth
+        {
+            self.reticle!.center = newPosition
+            self.scrollView!.contentOffset = CGPoint(x: newPosition.x - self.halfScreenWidth, y: 0)
+        }
+        else
+        {
+            self.reticle!.center = newPosition
+        }
+    }
+    
+    func rewindReticleAndSongGraphImage()
+    {
+        if self.scrollView != nil && self.reticle != nil
+        {
+            self.scrollView!.contentOffset = CGPoint(x: 0, y: 0)
+            self.reticle!.center = CGPoint(x: 0, y: self.scrollView!.center.y)
         }
     }
     
@@ -505,7 +535,10 @@ class SongGrapher : UIViewController
         self.scrollView = UIScrollView(frame: graphWindowFrame)
         if self.scrollView != nil
         {
+            self.scrollView!.delegate = self
+            self.scrollView!.isUserInteractionEnabled = true
             let imageView: UIImageView = UIImageView(image: graph)
+            imageView.isUserInteractionEnabled = true
             self.scrollView!.addSubview(imageView)
             self.scrollView!.contentSize = imageView.frame.size
             self.view.addSubview(self.scrollView!)
@@ -518,23 +551,45 @@ class SongGrapher : UIViewController
         if let reticleImage: UIImage = UIImage(named: "PositionReticle.png")
         {
             self.reticle = UIImageView(image: reticleImage)
+            self.reticle!.isUserInteractionEnabled = true
             self.reticle!.center = CGPoint(x: 0, y: self.scrollView!.center.y)
             self.scrollView!.addSubview(self.reticle!)
         }
     }
     
-    func loadSongPlayer() -> Void
+    func isThisTheSongGraph(thisScrollView: UIScrollView) -> Bool
     {
-        if let songChosen = self.songChosen, let url = songChosen.assetURL
+        if self.scrollView != nil
         {
-            do
+            return thisScrollView == self.scrollView
+        }
+        return false
+    }
+    
+    // MARK: UIScrollViewDelegate Methods.
+    
+    func fixArtworkAfterScroll(scrollView: UIScrollView)
+    {
+        if self.isThisTheSongGraph(thisScrollView: scrollView)
+        {
+            if self.reticle != nil
             {
-                self.songPlayer = try AVAudioPlayer(contentsOf: url)
-            }
-            catch let err
-            {
-                CentralCode.showError(message: "Failed to initialize the Song Player with the Chosen Song!  OS Error is: \(err.localizedDescription)", title: "Song Player Init Error", onViewController: self)
+                let newX: CGFloat = self.scrollView!.contentOffset.x + self.halfScreenWidth
+                let newY: CGFloat = self.scrollView!.center.y
+                self.reticle!.center = CGPoint(x: newX, y: newY)
+                self.realignSongPlayerToReticle()
             }
         }
+    }
+    
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool)
+    {
+        self.fixArtworkAfterScroll(scrollView: scrollView)
+        
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
+    {
+        self.fixArtworkAfterScroll(scrollView: scrollView)
     }
 }
