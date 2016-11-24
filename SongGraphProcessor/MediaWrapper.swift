@@ -42,4 +42,16 @@ class MPMediaWrapper
         }
         return matchingSongs
     }
+    
+    final class func getSong(withId: MPMediaEntityPersistentID) -> MPMediaItem?
+    {
+        let query: MPMediaQuery = MPMediaQuery()
+        let albumPredicate = MPMediaPropertyPredicate(value: withId, forProperty:MPMediaItemPropertyPersistentID)
+        query.addFilterPredicate(albumPredicate)
+        if let results = query.items
+        {
+            return results[0]
+        }
+        return nil
+    }
 }

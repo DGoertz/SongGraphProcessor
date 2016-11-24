@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		8802297B1DD5206D00EEC97B /* SongErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8802297A1DD5206D00EEC97B /* SongErrors.swift */; };
 		881BEF4B1DD4F5AD00F84AFC /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = 881BEF4A1DD4F5AC00F84AFC /* Song.swift */; };
+		8822BCF31DE463C000FA9FFB /* SongsTVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8822BCF21DE463C000FA9FFB /* SongsTVC.swift */; };
+		8822BCF51DE4651B00FA9FFB /* SongCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8822BCF41DE4651B00FA9FFB /* SongCell.swift */; };
 		884E21AB1DD12D9E006E6049 /* ImageErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884E21AA1DD12D9E006E6049 /* ImageErrors.swift */; };
 		884E21AD1DD1E8C4006E6049 /* CentralCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884E21AC1DD1E8C4006E6049 /* CentralCode.swift */; };
 		889A1B3F1DD78FC900D57B3C /* PositionReticle.png in Resources */ = {isa = PBXBuildFile; fileRef = 889A1B3E1DD78FC900D57B3C /* PositionReticle.png */; };
@@ -30,6 +32,8 @@
 /* Begin PBXFileReference section */
 		8802297A1DD5206D00EEC97B /* SongErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SongErrors.swift; sourceTree = "<group>"; };
 		881BEF4A1DD4F5AC00F84AFC /* Song.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Song.swift; sourceTree = "<group>"; };
+		8822BCF21DE463C000FA9FFB /* SongsTVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SongsTVC.swift; sourceTree = "<group>"; };
+		8822BCF41DE4651B00FA9FFB /* SongCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SongCell.swift; sourceTree = "<group>"; };
 		884E21AA1DD12D9E006E6049 /* ImageErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageErrors.swift; sourceTree = "<group>"; };
 		884E21AC1DD1E8C4006E6049 /* CentralCode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CentralCode.swift; sourceTree = "<group>"; };
 		889A1B3E1DD78FC900D57B3C /* PositionReticle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = PositionReticle.png; sourceTree = "<group>"; };
@@ -76,6 +80,8 @@
 			children = (
 				88FA5B1A1DCD3862007E7A0E /* SongChooser.swift */,
 				88FA5B2D1DCD39C0007E7A0E /* SongGrapher.swift */,
+				8822BCF21DE463C000FA9FFB /* SongsTVC.swift */,
+				8822BCF41DE4651B00FA9FFB /* SongCell.swift */,
 			);
 			name = ViewControllers;
 			sourceTree = "<group>";
@@ -236,6 +242,7 @@
 			files = (
 				881BEF4B1DD4F5AD00F84AFC /* Song.swift in Sources */,
 				8802297B1DD5206D00EEC97B /* SongErrors.swift in Sources */,
+				8822BCF31DE463C000FA9FFB /* SongsTVC.swift in Sources */,
 				88FA5B2E1DCD39C0007E7A0E /* SongGrapher.swift in Sources */,
 				88FA5B361DCD3AA0007E7A0E /* MediaImport.swift in Sources */,
 				88FA5B1B1DCD3862007E7A0E /* SongChooser.swift in Sources */,
@@ -246,6 +253,7 @@
 				88FA5B301DCD3A43007E7A0E /* BundleWrapper.swift in Sources */,
 				884E21AD1DD1E8C4006E6049 /* CentralCode.swift in Sources */,
 				88FA5B381DCD3AB4007E7A0E /* MediaWrapper.swift in Sources */,
+				8822BCF51DE4651B00FA9FFB /* SongCell.swift in Sources */,
 				88FA5B341DCD3A84007E7A0E /* UIImage_Extension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

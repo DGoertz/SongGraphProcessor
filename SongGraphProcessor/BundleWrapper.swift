@@ -95,24 +95,6 @@ class BundleWrapper
         return false
     }
     
-//    class func removeAudioGraphFileIfNeeded(forSong: MPMediaItem)
-//    {
-//        if BundleWrapper.doesAudioGraphExist(forSong: forSong)
-//        {
-//            do
-//            {
-//                if let audioGraphFile = BundleWrapper.getAudioGraphFileURL(forSong: forSong)
-//                {
-//                    try FileManager.default.removeItem(at: audioGraphFile)
-//                }
-//            }
-//            catch
-//            {
-//                print("Failed to remove the Audio Graph file!")
-//            }
-//        }
-//    }
-    
     class func removeImportCacheFileIfNeeded(forSong: MPMediaItem)
     {
         if BundleWrapper.doesImportCacheFileExist(forSong: forSong)

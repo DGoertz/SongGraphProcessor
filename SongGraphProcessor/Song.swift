@@ -13,7 +13,7 @@ import MediaPlayer
 
 extension Song
 {
-    class func buildIdRequest(forMpItem: MPMediaItem) -> NSFetchRequest<Song>
+    final class func buildIdRequest(forMpItem: MPMediaItem) -> NSFetchRequest<Song>
     {
         let request: NSFetchRequest<Song> = Song.fetchRequest()
         let id = NSNumber(value: forMpItem.persistentID)
@@ -21,7 +21,7 @@ extension Song
         return request
     }
     
-    class func doesSongExist(inContext: NSManagedObjectContext, mpItem: MPMediaItem) throws -> Bool
+    final class func doesSongExist(inContext: NSManagedObjectContext, mpItem: MPMediaItem) throws -> Bool
     {
         do
         {
@@ -34,7 +34,7 @@ extension Song
         }
     }
     
-    class func getSong(inContext: NSManagedObjectContext, mpItem: MPMediaItem) throws -> Song?
+    final class func getSong(inContext: NSManagedObjectContext, mpItem: MPMediaItem) throws -> Song?
     {
         do
         {
@@ -55,7 +55,7 @@ extension Song
         }
     }
     
-    class func listSongs(inContext: NSManagedObjectContext) throws -> [Song]?
+    final class func getSongs(inContext: NSManagedObjectContext) throws -> [Song]?
     {
         let request: NSFetchRequest<Song> = Song.fetchRequest()
         do
@@ -68,7 +68,7 @@ extension Song
         }
     }
     
-    class func addSong(toContext: NSManagedObjectContext, mpItem: MPMediaItem, graph: Data) -> Song
+    final class func addSong(toContext: NSManagedObjectContext, mpItem: MPMediaItem, graph: Data) -> Song
     {
         let newSong = Song(context: toContext)
         newSong.id = "\(mpItem.persistentID)"
@@ -79,7 +79,7 @@ extension Song
         return newSong
     }
     
-    class func updateSongGraph(inContext: NSManagedObjectContext, mpItem: MPMediaItem, graph: Data) throws -> Song?
+    final class func updateSongGraph(inContext: NSManagedObjectContext, mpItem: MPMediaItem, graph: Data) throws -> Song?
     {
         do
         {
