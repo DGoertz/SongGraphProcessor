@@ -67,9 +67,10 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
         return trueId
     }
     
-    override func viewDidLoad()
+    override func viewWillAppear(_ animated: Bool)
     {
         loadSongs()
+        self.tableView.reloadData()
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
@@ -102,13 +103,22 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
         cell.nwLabel.text = currentSong.album
         cell.swLabel.text = currentSong.artist
         cell.neLabel.text = currentSong.name
-        cell.seLabel.text = "\(currentSong.getPracticeItems()?.count) - PI's"
+        if let pItems = currentSong.getPracticeItems()
+        {
+            cell.seLabel.text = "\(pItems.count) - PI's"
+        }
         return cell
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
     {
-        return 1
+        guard let songs = self.songs
+        else
+        {
+            CentralCode.showError(message: "Failed to get backing Song while telling rows in section!", title: "Table Data Error", onViewController: self)
+            abort()
+        }
+        return songs.count
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
