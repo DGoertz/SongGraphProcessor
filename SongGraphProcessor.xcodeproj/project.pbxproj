@@ -15,7 +15,6 @@
 		884E21AD1DD1E8C4006E6049 /* CentralCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884E21AC1DD1E8C4006E6049 /* CentralCode.swift */; };
 		889A1B3F1DD78FC900D57B3C /* PositionReticle.png in Resources */ = {isa = PBXBuildFile; fileRef = 889A1B3E1DD78FC900D57B3C /* PositionReticle.png */; };
 		88FA5B191DCD3862007E7A0E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B181DCD3862007E7A0E /* AppDelegate.swift */; };
-		88FA5B1B1DCD3862007E7A0E /* SongChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B1A1DCD3862007E7A0E /* SongChooser.swift */; };
 		88FA5B1E1DCD3862007E7A0E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 88FA5B1C1DCD3862007E7A0E /* Main.storyboard */; };
 		88FA5B211DCD3862007E7A0E /* SongGraphProcessor.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B1F1DCD3862007E7A0E /* SongGraphProcessor.xcdatamodeld */; };
 		88FA5B231DCD3862007E7A0E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 88FA5B221DCD3862007E7A0E /* Assets.xcassets */; };
@@ -39,7 +38,6 @@
 		889A1B3E1DD78FC900D57B3C /* PositionReticle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = PositionReticle.png; sourceTree = "<group>"; };
 		88FA5B151DCD3862007E7A0E /* SongGraphProcessor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SongGraphProcessor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		88FA5B181DCD3862007E7A0E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		88FA5B1A1DCD3862007E7A0E /* SongChooser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongChooser.swift; sourceTree = "<group>"; };
 		88FA5B1D1DCD3862007E7A0E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		88FA5B201DCD3862007E7A0E /* SongGraphProcessor.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SongGraphProcessor.xcdatamodel; sourceTree = "<group>"; };
 		88FA5B221DCD3862007E7A0E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -78,7 +76,6 @@
 		8834C8FB1DCE107700D325C0 /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
-				88FA5B1A1DCD3862007E7A0E /* SongChooser.swift */,
 				88FA5B2D1DCD39C0007E7A0E /* SongGrapher.swift */,
 				8822BCF21DE463C000FA9FFB /* SongsTVC.swift */,
 				8822BCF41DE4651B00FA9FFB /* SongCell.swift */,
@@ -245,7 +242,6 @@
 				8822BCF31DE463C000FA9FFB /* SongsTVC.swift in Sources */,
 				88FA5B2E1DCD39C0007E7A0E /* SongGrapher.swift in Sources */,
 				88FA5B361DCD3AA0007E7A0E /* MediaImport.swift in Sources */,
-				88FA5B1B1DCD3862007E7A0E /* SongChooser.swift in Sources */,
 				88FA5B211DCD3862007E7A0E /* SongGraphProcessor.xcdatamodeld in Sources */,
 				88FA5B191DCD3862007E7A0E /* AppDelegate.swift in Sources */,
 				88FA5B3A1DCD3F37007E7A0E /* ImportErrors.swift in Sources */,

@@ -16,8 +16,8 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
     // MARK: Constants.
     static let segueToSongGrapherKey: String = "toSongGrapher"
     
-    var songs: [Song]?
-    var chosenSong: MPMediaItem?
+    var songs: [Song]!
+    var chosenMediaItem: MPMediaItem?
     var mediaPicker: MPMediaPickerController?
     var spinner: UIActivityIndicatorView!
     
@@ -52,26 +52,24 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
     
     func getId(fromSong: Song) -> UInt64
     {
-        guard let backingId = fromSong.id
+        guard let backingId = fromSong.id, let trueId = UInt64(backingId)
             else
         {
-            CentralCode.showError(message: "Failed to find backing MPMediaItem!", title: "Table Data Error", onViewController: self)
-            abort()
-        }
-        guard let trueId = UInt64(backingId)
-            else
-        {
-            CentralCode.showError(message: "Failed to convert MPMediaItem Persisten ID!", title: "Table Data Error", onViewController: self)
+            CentralCode.showError(message: "Failed to find the ID for a backing MPMediaItem!", title: "Table Data Error", onViewController: self)
             abort()
         }
         return trueId
     }
+    
+    // MARK: View Controller Life Cycle Methods.
     
     override func viewWillAppear(_ animated: Bool)
     {
         loadSongs()
         self.tableView.reloadData()
     }
+    
+    // MARK: UITableViewDataSource Delegate Methods.
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
     {
@@ -87,7 +85,8 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
             CentralCode.showError(message: "Failed to acess backing Songs List!", title: "Table Data Error", onViewController: self)
             abort()
         }
-        let trueId = getId(fromSong: songs[indexPath.row])
+        let currentSong = (songs[indexPath.row]) as Song
+        let trueId = getId(fromSong: currentSong)
         guard let backingMediaItem = MPMediaWrapper.getSong(withId: trueId)
         else
         {
@@ -99,13 +98,12 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
         {
             cell.albumCover.image = hasArtwork.image(at: size)
         }
-        let currentSong = (songs[indexPath.row]) as Song
         cell.nwLabel.text = currentSong.album
         cell.swLabel.text = currentSong.artist
         cell.neLabel.text = currentSong.name
         if let pItems = currentSong.getPracticeItems()
         {
-            cell.seLabel.text = "\(pItems.count) - PI's"
+            cell.seLabel.text = "Pracice Count: \(pItems.count)"
         }
         return cell
     }
@@ -115,7 +113,7 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
         guard let songs = self.songs
         else
         {
-            CentralCode.showError(message: "Failed to get backing Song while telling rows in section!", title: "Table Data Error", onViewController: self)
+            CentralCode.showError(message: "Failed to get backing Song List while reporting how many rows in section!", title: "Table Data Error", onViewController: self)
             abort()
         }
         return songs.count
@@ -131,16 +129,16 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
             CentralCode.showError(message: "Failed to get backing MPMediaItem!", title: "Table Data Error", onViewController: self)
             abort()
         }
-        self.chosenSong = backingMediaItem
-        process(mediaItem: backingMediaItem, mediaPicker: nil)
+        self.chosenMediaItem = backingMediaItem
+        process(mediaItem: backingMediaItem, fromPicker: nil)
     }
     
     // MARK: View Transition Methods.
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
-        if segue.identifier == SongsTVC.segueToSongGrapherKey, let nextVC = segue.destination as? SongGrapher, let chosenSong = self.chosenSong
+        if segue.identifier == SongsTVC.segueToSongGrapherKey, let nextVC = segue.destination as? SongGrapher, let chosenSong = self.chosenMediaItem
         {
-            nextVC.songChosen = self.chosenSong
+            nextVC.songChosen = chosenSong
             let titlePart1 = (chosenSong.title != nil) ? chosenSong.title! : "Unknown"
             let titlePart2 = (chosenSong.albumArtist !=  nil) ? chosenSong.albumArtist! : ""
             let titlePart3 = (chosenSong.albumTitle != nil) ? chosenSong.albumTitle! : ""
@@ -149,13 +147,13 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
         }
     }
     
-    func process(mediaItem: MPMediaItem, mediaPicker: MPMediaPickerController?)
+    func process(mediaItem: MPMediaItem, fromPicker: MPMediaPickerController?)
     {
-        if let hasChosenASong = self.chosenSong
+        if let hasChosenASong = self.chosenMediaItem
         {
             self.spinner = CentralCode.startSpinner(onView: self.view)
             guard let importCacheFileURL = BundleWrapper.getImportCacheFileURL(forSong: hasChosenASong)
-                else
+            else
             {
                 if mediaPicker != nil
                 {
@@ -184,7 +182,7 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
                 if try Song.doesSongExist(inContext: context, mpItem: hasChosenASong)
                 {
                     CentralCode.stopSpinner(self.spinner)
-                    self.performSegue(withIdentifier: SongChooser.segueToSongGrapherKey, sender: self)
+                    self.performSegue(withIdentifier: SongsTVC.segueToSongGrapherKey, sender: self)
                 }
                 else
                 {
@@ -201,7 +199,7 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
                                         CentralCode.runInMainThread(code:
                                             {
                                                 CentralCode.stopSpinner(strongSelf.spinner)
-                                                strongSelf.performSegue(withIdentifier: SongChooser.segueToSongGrapherKey, sender: self)
+                                                strongSelf.performSegue(withIdentifier: SongsTVC.segueToSongGrapherKey, sender: self)
                                         })
                                     }
                                     else
@@ -252,9 +250,8 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
     // MARK: MPMediaPickerControllerDelegate Functions.
     func mediaPicker(_ mediaPicker: MPMediaPickerController, didPickMediaItems mediaItemCollection: MPMediaItemCollection)
     {
-        let item = mediaItemCollection.items[0]
-        self.chosenSong = item
-        process(mediaItem: item, mediaPicker: mediaPicker)
+        self.chosenMediaItem = mediaItemCollection.items[0]
+        process(mediaItem: self.chosenMediaItem!, fromPicker: mediaPicker)
     }
     
     func mediaPickerDidCancel(_ mediaPicker: MPMediaPickerController)

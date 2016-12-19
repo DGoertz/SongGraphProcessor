@@ -39,8 +39,11 @@ class CentralCode
     
     class func stopSpinner(_ theSpinner: UIActivityIndicatorView?)
     {
-        theSpinner?.stopAnimating()
-        theSpinner?.removeFromSuperview()
+        if let hasSpinner = theSpinner
+        {
+            hasSpinner.stopAnimating()
+            hasSpinner.removeFromSuperview()
+        }
     }
     
     class func getDBContext() -> NSManagedObjectContext
