@@ -107,15 +107,17 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     {
         if self.songChosen != nil
         {
-            self.songPlayer!.currentTime = (self.songPlayer!.currentTime + 5) <= self.songChosen!.playbackDuration ? (self.songPlayer!.currentTime + 5) : self.songChosen!.playbackDuration
-            self.realignReticleAndSongGraphToSongPlayer()
+            let newTime: TimeInterval = (self.songPlayer!.currentTime + 5) <= self.songChosen!.playbackDuration ? (self.songPlayer!.currentTime + 5) : self.songChosen!.playbackDuration
+            self.realignReticleAndSongGraphToSongPlayer(atPosition: newTime)
+            self.songPlayer!.currentTime = newTime
         }
     }
     
     @IBAction func minus5(_ sender: UIBarButtonItem)
     {
-        self.songPlayer!.currentTime = (self.songPlayer!.currentTime - 5 > 0) ? self.songPlayer!.currentTime - 5 : 0
-        self.realignReticleAndSongGraphToSongPlayer()
+        let newTime: TimeInterval = (self.songPlayer!.currentTime - 5 > 0) ? self.songPlayer!.currentTime - 5 : 0
+        self.realignReticleAndSongGraphToSongPlayer(atPosition: newTime)
+        self.songPlayer!.currentTime = newTime
     }
     
     @IBAction func markStart(_ sender: UIBarButtonItem)
@@ -187,7 +189,7 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
                 {
                     if self.songPlayer!.isPlaying
                     {
-                        self.realignReticleAndSongGraphToSongPlayer()
+                        self.realignReticleAndSongGraphToSongPlayer(atPosition: self.songPlayer!.currentTime)
                     }
                 }
         })
@@ -303,7 +305,7 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
             if let newSongGraph: UIImage = try UIImage.drawPracticeItems(forSong: self.song!, withPixelsPerSecond: SongGrapher.pixelsPerSecond)
             {
                 self.putUpSongGraph(graph: newSongGraph)
-                self.realignReticleAndSongGraphToSongPlayer()
+                self.realignReticleAndSongGraphToSongPlayer(atPosition: self.songPlayer!.currentTime)
                 self.currentPI = nil
             }
         }
@@ -496,13 +498,13 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
         }
     }
     
-    func realignReticleAndSongGraphToSongPlayer()
+    func realignReticleAndSongGraphToSongPlayer(atPosition: TimeInterval)
     {
-        let newPosition = CGPoint(x: CGFloat(self.songPlayer!.currentTime) * SongGrapher.pixelsPerSecond, y: self.scrollView!.center.y)
+        let newPosition = CGPoint(x: CGFloat(atPosition) * SongGrapher.pixelsPerSecond, y: self.scrollView!.center.y)
         if newPosition.x > self.halfScreenWidth && newPosition.x < self.lastScreenHalfWidth
         {
             self.reticle!.center = newPosition
-            self.scrollView!.contentOffset = CGPoint(x: newPosition.x - self.halfScreenWidth, y: 0)
+            UIView.animate(withDuration: 1, delay: 0, options: UIViewAnimationOptions.curveEaseIn, animations: { self.self.scrollView!.contentOffset = CGPoint(x: newPosition.x - self.halfScreenWidth, y: 0) }, completion: nil)
         }
         else
         {
