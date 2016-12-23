@@ -8,6 +8,7 @@
 
 import UIKit
 import MediaPlayer
+import AudioToolbox
 import CoreData
 
 enum ScreenMode
@@ -38,8 +39,10 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     
     static let pixelsPerSecond: CGFloat = 50
     static let tabBarHeight:    CGFloat = 45
+    static let tockSound: SystemSoundID = 1104
     
     // MARK: GUI Contol References.
+    
     @IBOutlet weak var playButton: UIBarButtonItem!
     
     @IBOutlet weak var pauseButton: UIBarButtonItem!
@@ -53,6 +56,10 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     @IBOutlet weak var startPracticeItem: UIBarButtonItem!
     
     @IBOutlet weak var endPracticeItem: UIBarButtonItem!
+    
+    @IBOutlet weak var nextPracticeItem: UIBarButtonItem!
+    
+    @IBOutlet weak var prevPracticeItem: UIBarButtonItem!
     
     // MARK: GUI Contol Methods.
     
@@ -150,6 +157,96 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
         }
     }
     
+    @IBAction func gotoNextPracticeItem(_ sender: UIBarButtonItem)
+    {
+        if let currentPI = self.currentPI, let songPlayer = self.songPlayer
+        {
+            if let orderedPractices = getPracticesInOrder()
+            {
+                if let foundIndex = orderedPractices.index(where: {
+                    
+                    $0.name == currentPI.name && $0.startTime == currentPI.startTime && $0.endTime == currentPI.endTime
+                })
+                {
+                    if foundIndex == (orderedPractices.count - 1)
+                    {
+                        // At end PracticeItem - play a sound.
+                        AudioServicesPlayAlertSoundWithCompletion(SongGrapher.tockSound, nil)
+                        return
+                    }
+                    self.currentPI = orderedPractices[foundIndex + 1]
+                    songPlayer.currentTime = (self.currentPI?.startTime)!
+                    self.realignReticleAndSongGraphToSongPlayer(atPosition: songPlayer.currentTime)
+                }
+                else
+                {
+                    CentralCode.showError(message: "Current Practice Item not in list!", title: "Memory ERROR", onViewController: self)
+                    return
+                }
+            }
+        }
+    }
+    
+    
+    @IBAction func gotoPrevPracticeItem(_ sender: UIBarButtonItem)
+    {
+        if let currentPI = self.currentPI, let songPlayer = self.songPlayer
+        {
+            if let orderedPractices = getPracticesInOrder()
+            {
+                if let foundIndex = orderedPractices.index(where: {
+                    
+                    $0.name == currentPI.name && $0.startTime == currentPI.startTime && $0.endTime == currentPI.endTime
+                })
+                {
+                    if foundIndex == 0
+                    {
+                        // At beginning PracticeItem - play a sound.
+                        AudioServicesPlayAlertSoundWithCompletion(SongGrapher.tockSound, nil)
+                        return
+                    }
+                    self.currentPI = orderedPractices[foundIndex - 1]
+                    songPlayer.currentTime = (self.currentPI?.startTime)!
+                    self.realignReticleAndSongGraphToSongPlayer(atPosition: songPlayer.currentTime)
+                }
+                else
+                {
+                    CentralCode.showError(message: "Current Practice Item not in list!", title: "Memory ERROR", onViewController: self)
+                    return
+                }
+            }
+        }
+    }
+    
+    // MARK: Micellaneous Methods.
+    
+    func gotoFirstPracticeItem()
+    {
+        if let practices = getPracticesInOrder(), let songPlayer = self.songPlayer
+        {
+            if practices.count > 0
+            {                
+                self.currentPI = practices[0]
+                songPlayer.currentTime = (self.currentPI?.startTime)!
+                self.realignReticleAndSongGraphToSongPlayer(atPosition: songPlayer.currentTime)
+            }
+        }
+    }
+    
+    func getPracticesInOrder() -> [PracticeItem]?
+    {
+        if let song = self.song, let practices = song.practices
+        {
+            let startTimeCompare: NSSortDescriptor = NSSortDescriptor(key: "startTime", ascending: true)
+            if let sorted: [PracticeItem] = practices.sortedArray(using: [startTimeCompare]) as? [PracticeItem]
+            {
+                return sorted
+            }
+            return nil
+        }
+        return nil
+    }
+    
     // MARK: UIView Methods.
     
     override func viewDidAppear(_ animated: Bool)
@@ -159,6 +256,7 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
         self.halfScreenWidth = self.view.frame.width / 2
         self.loadSongGraph()
         self.loadSongPlayer()
+        self.gotoFirstPracticeItem()
         self.startTimer()
     }
     
@@ -504,7 +602,7 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
         if newPosition.x > self.halfScreenWidth && newPosition.x < self.lastScreenHalfWidth
         {
             self.reticle!.center = newPosition
-            UIView.animate(withDuration: 1, delay: 0, options: UIViewAnimationOptions.curveEaseIn, animations: { self.self.scrollView!.contentOffset = CGPoint(x: newPosition.x - self.halfScreenWidth, y: 0) }, completion: nil)
+            UIView.animate(withDuration: 1, delay: 0, options: UIViewAnimationOptions.curveEaseIn, animations: { self.scrollView!.contentOffset = CGPoint(x: newPosition.x - self.halfScreenWidth, y: 0) }, completion: nil)
         }
         else
         {

@@ -13,6 +13,13 @@
 		8822BCF51DE4651B00FA9FFB /* SongCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8822BCF41DE4651B00FA9FFB /* SongCell.swift */; };
 		884E21AB1DD12D9E006E6049 /* ImageErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884E21AA1DD12D9E006E6049 /* ImageErrors.swift */; };
 		884E21AD1DD1E8C4006E6049 /* CentralCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884E21AC1DD1E8C4006E6049 /* CentralCode.swift */; };
+		88552A201E09D96500BA7AE9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88552A1F1E09D96500BA7AE9 /* AppDelegate.swift */; };
+		88552A221E09D96500BA7AE9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88552A211E09D96500BA7AE9 /* ViewController.swift */; };
+		88552A281E09D96500BA7AE9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 88552A261E09D96500BA7AE9 /* Main.storyboard */; };
+		88552A2A1E09D96500BA7AE9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 88552A291E09D96500BA7AE9 /* Assets.xcassets */; };
+		88552A2F1E09DA7900BA7AE9 /* SongGraphProcessor.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B1F1DCD3862007E7A0E /* SongGraphProcessor.xcdatamodeld */; };
+		8894B60F1E0D748300F1A97B /* Cough.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 8894B60E1E0D748300F1A97B /* Cough.m4a */; };
+		8894B6101E0D748300F1A97B /* Cough.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 8894B60E1E0D748300F1A97B /* Cough.m4a */; };
 		889A1B3F1DD78FC900D57B3C /* PositionReticle.png in Resources */ = {isa = PBXBuildFile; fileRef = 889A1B3E1DD78FC900D57B3C /* PositionReticle.png */; };
 		88FA5B191DCD3862007E7A0E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA5B181DCD3862007E7A0E /* AppDelegate.swift */; };
 		88FA5B1E1DCD3862007E7A0E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 88FA5B1C1DCD3862007E7A0E /* Main.storyboard */; };
@@ -35,6 +42,13 @@
 		8822BCF41DE4651B00FA9FFB /* SongCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SongCell.swift; sourceTree = "<group>"; };
 		884E21AA1DD12D9E006E6049 /* ImageErrors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageErrors.swift; sourceTree = "<group>"; };
 		884E21AC1DD1E8C4006E6049 /* CentralCode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CentralCode.swift; sourceTree = "<group>"; };
+		88552A1D1E09D96500BA7AE9 /* TVPractice.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TVPractice.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		88552A1F1E09D96500BA7AE9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		88552A211E09D96500BA7AE9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		88552A271E09D96500BA7AE9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		88552A291E09D96500BA7AE9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		88552A2B1E09D96500BA7AE9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		8894B60E1E0D748300F1A97B /* Cough.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = Cough.m4a; sourceTree = "<group>"; };
 		889A1B3E1DD78FC900D57B3C /* PositionReticle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = PositionReticle.png; sourceTree = "<group>"; };
 		88FA5B151DCD3862007E7A0E /* SongGraphProcessor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SongGraphProcessor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		88FA5B181DCD3862007E7A0E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -53,6 +67,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		88552A1A1E09D96500BA7AE9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		88FA5B121DCD3862007E7A0E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -67,6 +88,7 @@
 			isa = PBXGroup;
 			children = (
 				889A1B3E1DD78FC900D57B3C /* PositionReticle.png */,
+				8894B60E1E0D748300F1A97B /* Cough.m4a */,
 				88FA5B221DCD3862007E7A0E /* Assets.xcassets */,
 				88FA5B311DCD3A5B007E7A0E /* RINGM___.TTF */,
 			);
@@ -132,10 +154,23 @@
 			name = ApplicationLevel;
 			sourceTree = "<group>";
 		};
+		88552A1E1E09D96500BA7AE9 /* TVPractice */ = {
+			isa = PBXGroup;
+			children = (
+				88552A1F1E09D96500BA7AE9 /* AppDelegate.swift */,
+				88552A211E09D96500BA7AE9 /* ViewController.swift */,
+				88552A261E09D96500BA7AE9 /* Main.storyboard */,
+				88552A291E09D96500BA7AE9 /* Assets.xcassets */,
+				88552A2B1E09D96500BA7AE9 /* Info.plist */,
+			);
+			path = TVPractice;
+			sourceTree = "<group>";
+		};
 		88FA5B0C1DCD3862007E7A0E = {
 			isa = PBXGroup;
 			children = (
 				88FA5B171DCD3862007E7A0E /* SongGraphProcessor */,
+				88552A1E1E09D96500BA7AE9 /* TVPractice */,
 				88FA5B161DCD3862007E7A0E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -144,6 +179,7 @@
 			isa = PBXGroup;
 			children = (
 				88FA5B151DCD3862007E7A0E /* SongGraphProcessor.app */,
+				88552A1D1E09D96500BA7AE9 /* TVPractice.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -165,6 +201,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		88552A1C1E09D96500BA7AE9 /* TVPractice */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 88552A2E1E09D96500BA7AE9 /* Build configuration list for PBXNativeTarget "TVPractice" */;
+			buildPhases = (
+				88552A191E09D96500BA7AE9 /* Sources */,
+				88552A1A1E09D96500BA7AE9 /* Frameworks */,
+				88552A1B1E09D96500BA7AE9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TVPractice;
+			productName = TVPractice;
+			productReference = 88552A1D1E09D96500BA7AE9 /* TVPractice.app */;
+			productType = "com.apple.product-type.application";
+		};
 		88FA5B141DCD3862007E7A0E /* SongGraphProcessor */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 88FA5B2A1DCD3862007E7A0E /* Build configuration list for PBXNativeTarget "SongGraphProcessor" */;
@@ -188,10 +241,15 @@
 		88FA5B0D1DCD3862007E7A0E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0810;
+				LastSwiftUpdateCheck = 0820;
 				LastUpgradeCheck = 0810;
 				ORGANIZATIONNAME = "David Goertz";
 				TargetAttributes = {
+					88552A1C1E09D96500BA7AE9 = {
+						CreatedOnToolsVersion = 8.2;
+						DevelopmentTeam = DBF596944M;
+						ProvisioningStyle = Automatic;
+					};
 					88FA5B141DCD3862007E7A0E = {
 						CreatedOnToolsVersion = 8.1;
 						DevelopmentTeam = 5EJLHTK7N7;
@@ -213,16 +271,28 @@
 			projectRoot = "";
 			targets = (
 				88FA5B141DCD3862007E7A0E /* SongGraphProcessor */,
+				88552A1C1E09D96500BA7AE9 /* TVPractice */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		88552A1B1E09D96500BA7AE9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				88552A2A1E09D96500BA7AE9 /* Assets.xcassets in Resources */,
+				8894B6101E0D748300F1A97B /* Cough.m4a in Resources */,
+				88552A281E09D96500BA7AE9 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		88FA5B131DCD3862007E7A0E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				88FA5B261DCD3862007E7A0E /* LaunchScreen.storyboard in Resources */,
+				8894B60F1E0D748300F1A97B /* Cough.m4a in Resources */,
 				88FA5B231DCD3862007E7A0E /* Assets.xcassets in Resources */,
 				889A1B3F1DD78FC900D57B3C /* PositionReticle.png in Resources */,
 				88FA5B321DCD3A5B007E7A0E /* RINGM___.TTF in Resources */,
@@ -233,6 +303,16 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		88552A191E09D96500BA7AE9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				88552A221E09D96500BA7AE9 /* ViewController.swift in Sources */,
+				88552A2F1E09DA7900BA7AE9 /* SongGraphProcessor.xcdatamodeld in Sources */,
+				88552A201E09D96500BA7AE9 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		88FA5B111DCD3862007E7A0E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -257,6 +337,14 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
+		88552A261E09D96500BA7AE9 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				88552A271E09D96500BA7AE9 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
 		88FA5B1C1DCD3862007E7A0E /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -276,6 +364,42 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		88552A2C1E09D96500BA7AE9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				DEVELOPMENT_TEAM = DBF596944M;
+				INFOPLIST_FILE = TVPractice/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.DRGEnterprises.TVPractice;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 10.1;
+			};
+			name = Debug;
+		};
+		88552A2D1E09D96500BA7AE9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				DEVELOPMENT_TEAM = DBF596944M;
+				INFOPLIST_FILE = TVPractice/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.DRGEnterprises.TVPractice;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 10.1;
+			};
+			name = Release;
+		};
 		88FA5B281DCD3862007E7A0E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -396,6 +520,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		88552A2E1E09D96500BA7AE9 /* Build configuration list for PBXNativeTarget "TVPractice" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				88552A2C1E09D96500BA7AE9 /* Debug */,
+				88552A2D1E09D96500BA7AE9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		88FA5B101DCD3862007E7A0E /* Build configuration list for PBXProject "SongGraphProcessor" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

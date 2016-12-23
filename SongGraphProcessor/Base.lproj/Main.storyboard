@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11761" systemVersion="16B2555" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="h8V-Zs-e9E">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11762" systemVersion="16C67" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="h8V-Zs-e9E">
     <device id="retina4_7" orientation="landscape">
         <adaptation id="fullscreen"/>
     </device>
@@ -152,6 +152,20 @@
                                             <action selector="markEnd:" destination="7ia-6O-h3l" id="cCe-3y-xCN"/>
                                         </connections>
                                     </barButtonItem>
+                                    <barButtonItem width="42" style="plain" systemItem="fixedSpace" id="s96-Tt-wjY"/>
+                                    <barButtonItem title="=&gt;" id="iEZ-Z4-ROm" userLabel="Goto Next Practice Item">
+                                        <color key="tintColor" red="1" green="0.31397847029999998" blue="0.1050086107" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <connections>
+                                            <action selector="gotoNextPracticeItem:" destination="7ia-6O-h3l" id="mAC-fX-LXc"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem width="42" style="plain" systemItem="fixedSpace" id="DQf-as-OVd"/>
+                                    <barButtonItem title="&lt;=" id="0Fe-Sj-nIm" userLabel="Goto Prev Practice Item">
+                                        <color key="tintColor" red="1" green="0.31397847029999998" blue="0.1050086107" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <connections>
+                                            <action selector="gotoPrevPracticeItem:" destination="7ia-6O-h3l" id="WAr-hE-9gw"/>
+                                        </connections>
+                                    </barButtonItem>
                                 </items>
                             </toolbar>
                         </subviews>
@@ -163,8 +177,10 @@
                         <outlet property="endPracticeItem" destination="wYy-2q-jz4" id="czD-6j-yXV"/>
                         <outlet property="fastBackward5" destination="0Aw-We-Pcj" id="Xvt-eg-XPP"/>
                         <outlet property="fastForward5" destination="fwD-qD-ab5" id="FV6-qQ-tSh"/>
+                        <outlet property="nextPracticeItem" destination="iEZ-Z4-ROm" id="qte-Ll-w6F"/>
                         <outlet property="pauseButton" destination="Heh-U7-teS" id="3cv-hL-GpD"/>
                         <outlet property="playButton" destination="noF-yy-PFd" id="9aN-Gg-KO0"/>
+                        <outlet property="prevPracticeItem" destination="0Fe-Sj-nIm" id="SS3-DD-f4m"/>
                         <outlet property="rewindButton" destination="ryK-IX-Jq5" id="sKs-Io-Udg"/>
                         <outlet property="startPracticeItem" destination="wnI-yg-O6U" id="uQR-nR-jhe"/>
                     </connections>
