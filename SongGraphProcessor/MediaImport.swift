@@ -33,12 +33,12 @@ class MediaImport
                 if let errorCode = errorCode
                 {
                     let errorDict: [AnyHashable: Any] = [NSLocalizedDescriptionKey : errorMessage ]
-                    return NSError(domain: MediaImport.ERROR_DOMAIN, code: errorCode, userInfo: errorDict)
+                    return NSError(domain: MediaImport.ERROR_DOMAIN, code: errorCode, userInfo: errorDict as? [String : Any])
                 }
                 else
                 {
                     let errorDict: [AnyHashable: Any] = [NSLocalizedDescriptionKey : errorMessage ]
-                    return NSError(domain: MediaImport.ERROR_DOMAIN, code: MediaImport.BASE_ERROR_CODE, userInfo: errorDict)
+                    return NSError(domain: MediaImport.ERROR_DOMAIN, code: MediaImport.BASE_ERROR_CODE, userInfo: errorDict as? [String : Any])
                 }
             }
             return hasSession.error as NSError?
@@ -155,11 +155,11 @@ class MediaImport
             switch input.pathExtension
             {
             case "m4a":
-                haveSession.outputFileType = AVFileTypeAppleM4A
+                haveSession.outputFileType = AVFileType.m4a
             case "wav":
-                haveSession.outputFileType = AVFileTypeWAVE
+                haveSession.outputFileType = AVFileType.wav
             case "aif":
-                haveSession.outputFileType = AVFileTypeAIFC
+                haveSession.outputFileType = AVFileType.aifc
             default:
                 throw ImportErrors.badFileType(fileExtension: input.pathExtension)
             }
@@ -199,7 +199,7 @@ class MediaImport
         if let hasSession  = self.importSession
         {
             hasSession.outputURL = movieFileURL
-            hasSession.outputFileType = AVFileTypeQuickTimeMovie
+            hasSession.outputFileType = AVFileType.mov
             hasSession.exportAsynchronously(completionHandler:
                 {
                 self.processAsMovieFile(destination, completionCode: completionCode, movieFileName: movieFileURL)

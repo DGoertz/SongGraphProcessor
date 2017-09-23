@@ -131,7 +131,7 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     {
         if self.song != nil && self.songPlayer != nil
         {
-            if self.songPlayer!.isPlaying && self.currentPI == nil
+            if self.songPlayer!.isPlaying
             {
                 self.currentPI = PracticeItem(context: context)
                 self.currentPI!.forSong = song
@@ -143,11 +143,19 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     
     @IBAction func markEnd(_ sender: UIBarButtonItem)
     {
-        if self.currentPI != nil && self.song != nil && self.songPlayer != nil
+        let currentPI = self.currentPI
+        guard let pi = currentPI
+        else
+        {
+            CentralCode.showError(message: "End pressed but not recording", title: "Bad!", onViewController: self)
+            self.currentMode = .paused
+            return
+        }
+        if self.song != nil && self.songPlayer != nil
         {
             if self.songPlayer!.isPlaying
             {
-                self.currentPI!.endTime = self.songPlayer!.currentTime
+                pi.endTime = self.songPlayer!.currentTime
                 self.getPracticeItemName(onViewController: self)
                 // Have to pause it here since the Ok button doesn't run till
                 // much later.
@@ -310,6 +318,8 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
             self.fastBackward5.isEnabled = true
             self.startPracticeItem.isEnabled = false
             self.endPracticeItem.isEnabled = false
+            self.nextPracticeItem.isEnabled = true
+            self.prevPracticeItem.isEnabled = true
         case .playing:
             self.playButton.isEnabled = false
             self.pauseButton.isEnabled = true
@@ -318,6 +328,8 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
             self.fastBackward5.isEnabled = true
             self.startPracticeItem.isEnabled = true
             self.endPracticeItem.isEnabled = false
+            self.nextPracticeItem.isEnabled = false
+            self.prevPracticeItem.isEnabled = false
         case .recording:
             self.playButton.isEnabled = false
             self.pauseButton.isEnabled = false
@@ -326,6 +338,8 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
             self.fastBackward5.isEnabled = false
             self.startPracticeItem.isEnabled = false
             self.endPracticeItem.isEnabled = true
+            self.nextPracticeItem.isEnabled = false
+            self.prevPracticeItem.isEnabled = false
         }
     }
     
@@ -395,16 +409,20 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     {
         do
         {
-            if self.currentPI != nil
-            {
-                self.currentPI!.name = withName
+            let currentPI = self.currentPI
+            guard let pi = currentPI
+            else {
+                CentralCode.showError(message: "Nil Current Practice Item found when trying to persist to DB!", title: "Bad", onViewController: self)
+                self.currentMode = .paused
+                return
             }
+            pi.name = withName
             try self.context.save()
             if let newSongGraph: UIImage = try UIImage.drawPracticeItems(forSong: self.song!, withPixelsPerSecond: SongGrapher.pixelsPerSecond)
             {
                 self.putUpSongGraph(graph: newSongGraph)
+                self.songPlayer!.currentTime = (pi.startTime)
                 self.realignReticleAndSongGraphToSongPlayer(atPosition: self.songPlayer!.currentTime)
-                self.currentPI = nil
             }
         }
         catch UIImageErrors.imageIsNotCGImage
@@ -432,7 +450,7 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
         {
             if try !Song.doesSongExist(inContext: inContext, mpItem: aSong)
             {
-                let newSong = Song.addSong(toContext: inContext, mpItem: aSong, graph: withGraph)
+                let newSong = Song.buildSongFromMediaItem(toContext: inContext, mpItem: aSong, graph: withGraph)
                 try inContext.save()
                 return newSong
             }
@@ -470,14 +488,14 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     
     func loadSongGraph() -> Void
     {
-        if let songChosen = songChosen
+        if let mediaItemChosen = songChosen
         {
             self.spinner = CentralCode.startSpinner(onView: self.view)
             do
             {
-                if let foundSong = try Song.getSong(inContext: context, mpItem: songChosen)
+                if let foundSong = try Song.getSong(inContext: context, mpItem: mediaItemChosen)
                 {
-                    if let songImage: UIImage = UIImage(data: foundSong.graph as! Data)
+                    if let songImage: UIImage = UIImage(data: foundSong.graph! as Data)
                     {
                         self.songImage = songImage
                         self.lastScreenHalfWidth = songImage.size.width - self.halfScreenWidth
@@ -522,7 +540,7 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
             do
             {
                 let graphHeight = self.view.frame.height - SongGrapher.tabBarHeight
-                try UIImage.getImage(fromSong: songChosen, pixelsPerSecond: SongGrapher.pixelsPerSecond, graphMaxHeight: Int(graphHeight), completion:
+                try UIImage.produceSongImage(fromMediaItem: mediaItemChosen, pixelsPerSecond: SongGrapher.pixelsPerSecond, graphMaxHeight: Int(graphHeight), completion:
                     
                     {
                         
@@ -535,9 +553,9 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
                             CentralCode.runInMainThread(code:
                                 {
                                     // We've produced the Graph and don't need the Import file anymore.
-                                    if BundleWrapper.doesImportCacheFileExist(forSong: songChosen)
+                                    if BundleWrapper.doesImportCacheFileExist(forSong: mediaItemChosen)
                                     {
-                                        let importCacheFileURL: URL = BundleWrapper.getImportCacheFileURL(forSong: songChosen)!
+                                        let importCacheFileURL: URL = BundleWrapper.getImportCacheFileURL(forSong: mediaItemChosen)!
                                         do
                                         {
                                             try FileManager.default.removeItem(at: importCacheFileURL)
@@ -556,7 +574,7 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
                                         strongSelf.putUpSongGraph(graph: songImage)
                                         if let pngRepresentation = UIImagePNGRepresentation(songImage)
                                         {
-                                            strongSelf.song = strongSelf.updateSongInDb(inContext: strongSelf.context, aSong: songChosen, withGraph: pngRepresentation)
+                                            strongSelf.song = strongSelf.updateSongInDb(inContext: strongSelf.context, aSong: mediaItemChosen, withGraph: pngRepresentation)
                                             CentralCode.stopSpinner(strongSelf.spinner)
                                             return
                                         }

@@ -13,7 +13,7 @@ import MediaPlayer
 
 extension Song
 {
-    final class func buildIdRequest(forMpItem: MPMediaItem) -> NSFetchRequest<Song>
+    final class func buildRequestFromMediaID(forMpItem: MPMediaItem) -> NSFetchRequest<Song>
     {
         let request: NSFetchRequest<Song> = Song.fetchRequest()
         let id = NSNumber(value: forMpItem.persistentID)
@@ -25,7 +25,7 @@ extension Song
     {
         do
         {
-            let results = try inContext.fetch(Song.buildIdRequest(forMpItem: mpItem))
+            let results = try inContext.fetch(Song.buildRequestFromMediaID(forMpItem: mpItem))
             return results.count > 0
         }
         catch let err
@@ -38,7 +38,7 @@ extension Song
     {
         do
         {
-            let results = try inContext.fetch(Song.buildIdRequest(forMpItem: mpItem))
+            let results = try inContext.fetch(Song.buildRequestFromMediaID(forMpItem: mpItem))
             if results.count > 1
             {
                 throw SongErrors.idIsNotUnique
@@ -68,14 +68,14 @@ extension Song
         }
     }
     
-    final class func addSong(toContext: NSManagedObjectContext, mpItem: MPMediaItem, graph: Data) -> Song
+    final class func buildSongFromMediaItem(toContext: NSManagedObjectContext, mpItem: MPMediaItem, graph: Data) -> Song
     {
         let newSong = Song(context: toContext)
         newSong.id = "\(mpItem.persistentID)"
         newSong.name = mpItem.title
         newSong.album = mpItem.albumTitle
         newSong.artist = mpItem.artist
-        newSong.graph = graph as NSData?
+        newSong.graph = graph
         return newSong
     }
     
@@ -83,14 +83,14 @@ extension Song
     {
         do
         {
-            let results = try inContext.fetch(Song.buildIdRequest(forMpItem: mpItem))
+            let results = try inContext.fetch(Song.buildRequestFromMediaID(forMpItem: mpItem))
             if results.count > 1
             {
                 throw SongErrors.idIsNotUnique
             }
             if results.count == 1
             {
-                results[0].graph = graph as NSData?
+                results[0].graph = graph
                 return results[0]
             }
         }
@@ -109,14 +109,7 @@ extension Song
         guard let hasPractices = self.practices else {
             return nil
         }
-        var results: [PracticeItem] = []
-        for currentPracticeItem in hasPractices
-        {
-            if let pi = currentPracticeItem as? PracticeItem
-            {
-                results.append(pi)
-            }
-        }
-        return results
+        // Alternate code to test whether I have to parse through all elements or NOT!
+        return hasPractices.allObjects as? [PracticeItem]
     }
 }

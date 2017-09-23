@@ -19,9 +19,10 @@ enum UIImageErrors: Error
     case osLevelError(errorMessage: String)
     case sampleBufferCopyFailure
     case assetReaderFailure(errorMessage: String)
-    case fontNotLoaded(errorMessage: String)
+    //case fontNotLoaded(errorMessage: String)
     case graphicsContextMissing(errorMessage: String)
     case failedToGetImageFromContext(errorMessage: String)
     case imageNotObtainedFromContext
     case imageIsNotCGImage
+    case failedToLoadFont(errorMessage: String)
 }

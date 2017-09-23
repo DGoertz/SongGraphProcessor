@@ -78,11 +78,23 @@ extension UIImage
 // MARK: Song Graphing Methods.
 extension UIImage
 {
-    class func getImage(fromSong: MPMediaItem, pixelsPerSecond: CGFloat, graphMaxHeight: Int, completion: @escaping (UIImage?) -> Void) throws -> Void
+    // This extension of UIImage will have any text implemented by the Font associated
+    // with it from the above constants kFontName & kFontSize.
+    class func getConnectedFont() throws -> UIFont?
+    {
+        guard let doesFontExist = UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize))
+        else
+        {
+            throw UIImageErrors.failedToLoadFont(errorMessage: "In \(#function) and unable to load the font \(UIImage.kFontName)!")
+        }
+        return doesFontExist
+    }
+    
+    class func produceSongImage(fromMediaItem: MPMediaItem, pixelsPerSecond: CGFloat, graphMaxHeight: Int, completion: @escaping (UIImage?) -> Void) throws -> Void
     {
         // Need to do a quick check to see whether we already have the Image or
         // what is known as the Song Graph File.
-        guard let audioCacheFile = BundleWrapper.getImportCacheFileURL(forSong: fromSong)
+        guard let audioCacheFile = BundleWrapper.getImportCacheFileURL(forSong: fromMediaItem)
             else
         {
             throw UIImageErrors.importCacheFileURLNotFound(errorMessage: "In \(#function) and unable to obtain the location of the Import Audio Cache file!")
@@ -116,7 +128,7 @@ extension UIImage
             if let audioDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription)
             {
                 samplesPerSecond = UInt32(audioDescription.pointee.mSampleRate)
-                songLengthInSecs = fromSong.playbackDuration
+                songLengthInSecs = fromMediaItem.playbackDuration
                 channelCount = audioDescription.pointee.mChannelsPerFrame
             }
             // We have multiple channels.
@@ -252,13 +264,19 @@ extension UIImage
         //          + - Number Line Margin  +
         //          +-----------------------+
         
-        guard let printingFont: UIFont = UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize))
-            else
+        let printingFont: UIFont?
+        do
         {
-            throw UIImageErrors.fontNotLoaded(errorMessage: "Unable to load font \(UIImage.kFontName) in \(#function)!")
+            printingFont = try UIImage.getConnectedFont()
+        }
+        catch
+        {
+            throw error
         }
         
-        let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize)) as Any]
+        let fontAttributes: [NSAttributedStringKey : Any] = [.font : printingFont as Any]
+        
+        //let fontAttributes: [NSAttributedStringKey : Any] = [NSAttributedStringKey(rawValue: NSAttributedStringKey.font.rawValue) : UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize)) as Any]
         
         // From our samples of all channels involved we have kept track of the maximum
         // wave height possible in 'songMaxSignal'.
@@ -333,14 +351,14 @@ extension UIImage
         var worstCase: String = "99 SEC"
         var useFiveSecUnitsLabel: Bool = true
         
-        var sizeOfWorstCase:CGSize = (worstCase as NSString).size(attributes: fontAttributes)
+        var sizeOfWorstCase:CGSize = (worstCase as NSString).size(withAttributes: fontAttributes)
         
         var showFiveSecondLabels = CGFloat(pixelsPerFiveSecondInterval) > (sizeOfWorstCase.width + CGFloat(UIImage.kTimeLineNumberLineTextMarkerMargin))
         
         if showFiveSecondLabels == false
         {
             worstCase = "99"
-            sizeOfWorstCase = (worstCase as NSString).size(attributes: fontAttributes)
+            sizeOfWorstCase = (worstCase as NSString).size(withAttributes: fontAttributes)
             showFiveSecondLabels = CGFloat(pixelsPerFiveSecondInterval) > (sizeOfWorstCase.width + CGFloat(UIImage.kTimeLineNumberLineTextMarkerMargin))
             if showFiveSecondLabels == true
             {
@@ -420,11 +438,11 @@ extension UIImage
                     if useFiveSecUnitsLabel == true
                     {
                         refPoint.y = refPoint.y + CGFloat(UIImage.kTimeLineNumberLineTextMarkerOffset)
-                        UIImage.printUnitFrom(refPoint: refPoint, itsValue: valueInInterval, inContext: context, usingUnit: "sec", andAddedUnit: currentMinute, andFont: printingFont)
+                        UIImage.printUnitFrom(refPoint: refPoint, itsValue: valueInInterval, drawContext: context, usingUnit: "sec", andAddedUnit: currentMinute, andFont: printingFont!)
                     }
                     else
                     {
-                        UIImage.printUnitFrom(refPoint: refPoint, itsValue: valueInInterval, inContext: context, usingUnit: nil, andAddedUnit: 0, andFont: printingFont)
+                        UIImage.printUnitFrom(refPoint: refPoint, itsValue: valueInInterval, drawContext: context, usingUnit: nil, andAddedUnit: 0, andFont: printingFont!)
                     }
                 }
             }
@@ -446,7 +464,7 @@ extension UIImage
                 {
                     refPoint.y = refPoint.y + CGFloat(UIImage.kTimeLineNumberLineTextMarkerOffset)
                     currentMinute = currentMinute + 1
-                    UIImage.printUnitFrom(refPoint: refPoint, itsValue: currentMinute, inContext: context, usingUnit: "min", andAddedUnit: 0, andFont: printingFont)
+                    UIImage.printUnitFrom(refPoint: refPoint, itsValue: currentMinute, drawContext: context, usingUnit: "min", andAddedUnit: 0, andFont: printingFont!)
                     currentFiveSecond = currentFiveSecond + 5
                 }
             }
@@ -464,10 +482,10 @@ extension UIImage
         throw UIImageErrors.failedToGetImageFromContext(errorMessage: "Unable to obtain Image from Graphics Context")
     }
     
-    class func printUnitFrom(refPoint: CGPoint, itsValue: Int, inContext: CGContext, usingUnit: String?, andAddedUnit: Int, andFont: UIFont) -> Void
+    class func printUnitFrom(refPoint: CGPoint, itsValue: Int, drawContext: CGContext, usingUnit: String?, andAddedUnit: Int, andFont: UIFont) -> Void
     {
         // Preserve callers Context by pushing it onto a stack.
-        inContext.saveGState()
+        drawContext.saveGState()
         
         var minuteStr: String? = nil
         
@@ -475,9 +493,9 @@ extension UIImage
         if andAddedUnit >= 1
         {
             minuteStr = "\(andAddedUnit) min"
-            UIImage.printUnitLabel(forValue: minuteStr!, inContext: inContext, atPoint: refPoint, withFont: andFont)
-            let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize)) as Any]
-            let textSize: CGSize = (minuteStr! as NSString).size(attributes: fontAttributes)
+            UIImage.printUnitLabel(forValue: minuteStr!, drawContext: drawContext, atPoint: refPoint, withFont: andFont)
+            let fontAttributes: [NSAttributedStringKey : Any] = [.font : UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kFontSize)) as Any]
+            let textSize: CGSize = (minuteStr! as NSString).size(withAttributes: fontAttributes)
             
             let newRefPoint: CGPoint = CGPoint(x: refPoint.x, y: refPoint.y + textSize.height)
             
@@ -489,7 +507,7 @@ extension UIImage
             {
                 minuteStr = "\(itsValue)"
             }
-            UIImage.printUnitLabel(forValue: minuteStr!, inContext: inContext, atPoint: newRefPoint, withFont: andFont)
+            UIImage.printUnitLabel(forValue: minuteStr!, drawContext: drawContext, atPoint: newRefPoint, withFont: andFont)
         }
         else
         {
@@ -501,29 +519,29 @@ extension UIImage
             {
                 minuteStr = "\(itsValue)"
             }
-            UIImage.printUnitLabel(forValue: minuteStr!, inContext: inContext, atPoint: refPoint, withFont: andFont)
+            UIImage.printUnitLabel(forValue: minuteStr!, drawContext: drawContext, atPoint: refPoint, withFont: andFont)
         }
-        inContext.restoreGState()
+        drawContext.restoreGState()
     }
     
-    class func printUnitLabel(forValue: String, inContext: CGContext, atPoint: CGPoint, withFont: UIFont) -> Void
+    class func printUnitLabel(forValue: String, drawContext: CGContext, atPoint: CGPoint, withFont: UIFont) -> Void
     {
         // Preserve callers Context by pushing it onto a stack.
-        inContext.saveGState()
+        drawContext.saveGState()
         let timeNumberColor: UIColor = UIImage.kGraphColorTimeNumberMarkers
         let timeLineLetterColor: UIColor = UIImage.kGraphColorTimeNumberLetters
-        let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: withFont.fontName, size: withFont.pointSize) as Any, NSForegroundColorAttributeName : timeNumberColor]
+        let fontAttributes: [NSAttributedStringKey : Any] = [.font : UIFont(name: withFont.fontName, size: withFont.pointSize) as Any, NSAttributedStringKey(rawValue: NSAttributedStringKey.foregroundColor.rawValue) : timeNumberColor]
         let valueToBePrinted: NSString = forValue as NSString
-        let textSize: CGSize = valueToBePrinted.size(attributes: fontAttributes)
+        let textSize: CGSize = valueToBePrinted.size(withAttributes: fontAttributes)
         let halfTextWidth: CGFloat = textSize.width / 2
         let quarterTextHeight: CGFloat = textSize.height / 4
         // Draw the text.
-        inContext.setShouldAntialias(true)
-        inContext.setTextDrawingMode(CGTextDrawingMode.fill)
-        inContext.setStrokeColor(timeLineLetterColor.cgColor)
+        drawContext.setShouldAntialias(true)
+        drawContext.setTextDrawingMode(CGTextDrawingMode.fill)
+        drawContext.setStrokeColor(timeLineLetterColor.cgColor)
         let textPoint: CGPoint = CGPoint(x: atPoint.x - halfTextWidth, y: atPoint.y + quarterTextHeight)
         valueToBePrinted.draw(at: textPoint, withAttributes: fontAttributes)
-        inContext.restoreGState()
+        drawContext.restoreGState()
     }
     
     class func drawPracticeItems(forSong: Song,withPixelsPerSecond: CGFloat) throws -> UIImage?
@@ -556,7 +574,7 @@ extension UIImage
     {
         do
         {
-            let context: CGContext = try UIImage.getEditableImageContext(fromImage: onSongGraph)
+            let drawContext: CGContext = try UIImage.getEditableImageContext(fromImage: onSongGraph)
             
             let baseMarkerColor = UIImage.kGraphColorMarkerBase.cgColor
             let startMarkerColor = UIImage.kGraphColorStartMarker.cgColor
@@ -565,42 +583,47 @@ extension UIImage
             let halfHeight: CGFloat = onSongGraph.size.height / 2
             
             // Draw the Starter Marker Base.
-            context.setLineWidth(UIImage.kGraphMarkerBaseWidth)
+            drawContext.setLineWidth(UIImage.kGraphMarkerBaseWidth)
             let startX: CGFloat = CGFloat(practiceItem.startTime) * withPixelsPerSecond
-            context.move(to: CGPoint(x: startX, y: UIImage.tabBarHeight))
-            context.addLine(to: CGPoint(x: startX, y: UIImage.tabBarHeight + CGFloat(UIImage.kGraphMarkerBaseHeight)))
-            context.setStrokeColor(baseMarkerColor)
-            context.strokePath()
+            drawContext.move(to: CGPoint(x: startX, y: UIImage.tabBarHeight))
+            drawContext.addLine(to: CGPoint(x: startX, y: UIImage.tabBarHeight + CGFloat(UIImage.kGraphMarkerBaseHeight)))
+            drawContext.setStrokeColor(baseMarkerColor)
+            drawContext.strokePath()
             
             // Draw the rest of the Starter Marker.
-            context.setLineWidth(UIImage.kGraphStartMarkerWidth)
-            context.move(to: CGPoint(x: startX, y: UIImage.tabBarHeight + UIImage.kGraphMarkerBaseHeight))
-            context.addLine(to: CGPoint(x: startX, y: onSongGraph.size.height))
-            context.setStrokeColor(startMarkerColor)
-            context.strokePath()
+            drawContext.setLineWidth(UIImage.kGraphStartMarkerWidth)
+            drawContext.move(to: CGPoint(x: startX, y: UIImage.tabBarHeight + UIImage.kGraphMarkerBaseHeight))
+            drawContext.addLine(to: CGPoint(x: startX, y: onSongGraph.size.height))
+            drawContext.setStrokeColor(startMarkerColor)
+            drawContext.strokePath()
             
             // Draw the End Marker Base.
-            context.setLineWidth(UIImage.kGraphMarkerBaseWidth)
+            drawContext.setLineWidth(UIImage.kGraphMarkerBaseWidth)
             let endX: CGFloat = CGFloat(practiceItem.endTime) * withPixelsPerSecond
-            context.move(to: CGPoint(x: endX, y: UIImage.tabBarHeight))
-            context.addLine(to: CGPoint(x: endX, y: UIImage.tabBarHeight + UIImage.kGraphMarkerBaseHeight))
-            context.setStrokeColor(baseMarkerColor)
-            context.strokePath()
+            drawContext.move(to: CGPoint(x: endX, y: UIImage.tabBarHeight))
+            drawContext.addLine(to: CGPoint(x: endX, y: UIImage.tabBarHeight + UIImage.kGraphMarkerBaseHeight))
+            drawContext.setStrokeColor(baseMarkerColor)
+            drawContext.strokePath()
             
             // Draw the rest of the End Marker.
-            context.setLineWidth(UIImage.kGraphEndMarkerWidth)
-            context.move(to: CGPoint(x: endX, y: UIImage.tabBarHeight + UIImage.kGraphMarkerBaseHeight))
-            context.addLine(to: CGPoint(x: endX, y: onSongGraph.size.height))
-            context.setStrokeColor(endMarkerColor)
-            context.strokePath()
+            drawContext.setLineWidth(UIImage.kGraphEndMarkerWidth)
+            drawContext.move(to: CGPoint(x: endX, y: UIImage.tabBarHeight + UIImage.kGraphMarkerBaseHeight))
+            drawContext.addLine(to: CGPoint(x: endX, y: onSongGraph.size.height))
+            drawContext.setStrokeColor(endMarkerColor)
+            drawContext.strokePath()
             
-            guard let printingFont: UIFont = UIFont(name: UIImage.kFontName, size: CGFloat(UIImage.kPIFontSize))
-                else
+            let printingFont: UIFont?
+            do
             {
-                throw UIImageErrors.fontNotLoaded(errorMessage: "Unable to load font \(UIImage.kFontName) in \(#function)!")
+                printingFont = try UIImage.getConnectedFont()
             }
+            catch
+            {
+                throw error
+            }
+            
             let printPoint: CGPoint = CGPoint(x: startX + ((endX - startX) / 2), y: halfHeight)
-            self.printPI(name: practiceItem.name!, onContext: context, atPoint: printPoint, withFont: printingFont, forSongGraph: onSongGraph)
+            self.printPI(name: practiceItem.name!, onContext: drawContext, atPoint: printPoint, withFont: printingFont!, forSongGraph: onSongGraph)
             // Create new image
             if let newImage = UIGraphicsGetImageFromCurrentImageContext()
             {
@@ -619,9 +642,12 @@ extension UIImage
     class func printPI(name: String, onContext: CGContext, atPoint: CGPoint, withFont: UIFont, forSongGraph: UIImage)
     {
         onContext.saveGState()
-        let fontAttributes: [String : Any] = [NSFontAttributeName : UIFont(name: withFont.fontName, size: withFont.pointSize) as Any, NSForegroundColorAttributeName : UIImage.kPracticeItemNameColor]
+        let fontAttributes: [NSAttributedStringKey : Any] = [.font : UIFont(name: withFont.fontName, size: withFont.pointSize) as Any, NSAttributedStringKey(rawValue: NSAttributedStringKey.foregroundColor.rawValue) : UIImage.kPracticeItemNameColor]
         let valueToBePrinted: NSString = name as NSString
-        let textSize: CGSize = valueToBePrinted.size(attributes: fontAttributes)
+        
+        let textSize: CGSize = valueToBePrinted.size(withAttributes: [.font : withFont])
+        //let textSize: CGSize = valueToBePrinted.size(withAttributes: fontAttributes)
+        
         let halfTextWidth: CGFloat = textSize.width / 2
         let quarterTextHeight: CGFloat = textSize.height / 4
         // Draw the text.
