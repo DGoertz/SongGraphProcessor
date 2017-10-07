@@ -10,8 +10,13 @@ import Foundation
 
 enum ImportErrors: Error
 {
-    case fileShouldNotExist(fileName: String)
+    case compositionObjectFailure(failureReason: String)
+    case fileNotExportable(fileName: String)
+    case exportSessionFailed(reason: String)
+    case exportSessionCanceled(reason: String)
     case badFileType(fileExtension: String)
+    case fileTypeNotSupported(fileExtension: String)
+    case outputFileAlreadyExists
     case inputURLMissing
     case outputURLMissing
     case sessionFailedToInit

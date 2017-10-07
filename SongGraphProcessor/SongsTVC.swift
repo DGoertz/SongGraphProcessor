@@ -26,7 +26,7 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
         self.mediaPicker = MPMediaPickerController(mediaTypes: MPMediaType.music)
         self.mediaPicker!.delegate = self
         self.mediaPicker!.allowsPickingMultipleItems = false
-        self.mediaPicker!.showsCloudItems = false
+        self.mediaPicker!.showsCloudItems = true
         if let hasNavController = self.navigationController
         {
             hasNavController.present(self.mediaPicker!, animated: true, completion: nil)
@@ -74,13 +74,13 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
     {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "SongCell", for: indexPath) as? SongCell
-        else
+            else
         {
             CentralCode.showError(message: "Failed to dequeue Song Cell!", title: "Table Cell Error", onViewController: self)
             abort()
         }
         guard let songs = self.songs
-        else
+            else
         {
             CentralCode.showError(message: "Failed to acess backing Songs List!", title: "Table Data Error", onViewController: self)
             abort()
@@ -88,7 +88,7 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
         let currentSong = (songs[indexPath.row]) as Song
         let trueId = getId(fromSong: currentSong)
         guard let backingMediaItem = MPMediaWrapper.getSong(withId: trueId)
-        else
+            else
         {
             CentralCode.showError(message: "Failed to get backing MPMediaItem!", title: "Table Data Error", onViewController: self)
             abort()
@@ -111,7 +111,7 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
     {
         guard let songs = self.songs
-        else
+            else
         {
             CentralCode.showError(message: "Failed to get backing Song List while reporting how many rows in section!", title: "Table Data Error", onViewController: self)
             abort()
@@ -153,7 +153,7 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
         {
             self.spinner = CentralCode.startSpinner(onView: self.view)
             guard let importCacheFileURL = BundleWrapper.getImportCacheFileURL(forSong: hasChosenASong)
-            else
+                else
             {
                 if mediaPicker != nil
                 {
@@ -187,7 +187,9 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
                 else
                 {
                     let importGuy = MediaImport()
-                    try importGuy.doImport(inputURL, output: importCacheFileURL, completionCode:
+                    do
+                    {
+                        try importGuy.doImport(inputURL, output: importCacheFileURL, completionCode:
                         {
                             [weak self] (importGuy) in
                             if let strongSelf = self
@@ -234,8 +236,61 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
                                     })
                                 }
                             }
-                    })
-                    
+                            }
+                        )
+                    }
+                    catch let error
+                    {
+                        var errorMessage: String
+                        var errorTitle: String
+                        switch error
+                        {
+                        case ImportErrors.badFileType(fileExtension: let errM):
+                            errorMessage = "Cannot handle files of type \(errM)!"
+                            errorTitle = "Song Choice Error"
+                        case ImportErrors.cantKillTempFile(fileName: let errM):
+                            errorMessage = "Cannot kill temp file \(errM)!"
+                            errorTitle = "Temp File Error"
+                        case ImportErrors.cantOpenDestinationFile(fileName: let errM):
+                            errorMessage = "Cannot open destination file \(errM)!"
+                            errorTitle = "Destination File Error"
+                        case ImportErrors.cantOpenTempFile(fileName: let errM):
+                            errorMessage = "Cannot open Temp file \(errM)!"
+                            errorTitle = "Temp File Error"
+                        case ImportErrors.compositionObjectFailure(failureReason: let errM):
+                            errorMessage = "Cannot create Compostion Object: \(errM)!"
+                            errorTitle = "Composition File Error"
+                        case ImportErrors.exportSessionCanceled(reason: let errM):
+                            errorMessage = "Export session was cancelled unexpectedly: \(errM)!"
+                            errorTitle = "Export Session Error"
+                        case ImportErrors.exportSessionFailed(reason: let errM):
+                            errorMessage = "Export session was failed unexpectedly: \(errM)!"
+                            errorTitle = "Export Session Error"
+                        case ImportErrors.fileNotExportable(fileName: let errM):
+                            errorMessage = "File \(errM) is not exportable!"
+                            errorTitle = "Export File Error"
+                        case ImportErrors.fileTypeNotSupported(fileExtension: let errM):
+                            errorMessage = "File type \(errM) is not Supported!"
+                            errorTitle = "File Type Error"
+                        case ImportErrors.inputURLMissing:
+                            errorMessage = "Input file parameter is missing!"
+                            errorTitle = "Input File Error"
+                        case ImportErrors.outputFileAlreadyExists:
+                            errorMessage = "Output file already exists!"
+                            errorTitle = "Output File Error"
+                        case ImportErrors.outputURLMissing:
+                            errorMessage = "Output file parameter is missing!"
+                            errorTitle = "Output File Error"
+                        case ImportErrors.sessionFailedToInit:
+                            errorMessage = "Export session failed to Initialize!"
+                            errorTitle = "Export Session Error"
+                        default:
+                            errorMessage = "Unknown ERRE!"
+                            errorTitle = "Unknown Error"
+                        }
+                        CentralCode.showError(message: errorMessage, title: errorTitle, onViewController: self)
+                        CentralCode.stopSpinner(self.spinner)
+                    }
                 }
             }
             catch let error

@@ -397,7 +397,7 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
             {
                 if let alertOkAction = alertViewController.actions.last
                 {
-                    alertOkAction.isEnabled = text.characters.count == 3
+                    alertOkAction.isEnabled = text.count == 3
                 }
             }
         }
@@ -409,8 +409,9 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     {
         do
         {
-            let currentPI = self.currentPI
-            guard let pi = currentPI
+            // In the past I had to do this.  Leave the old version for now!
+            //let currentPI = self.currentPI
+            guard let pi = self.currentPI
             else {
                 CentralCode.showError(message: "Nil Current Practice Item found when trying to persist to DB!", title: "Bad", onViewController: self)
                 self.currentMode = .paused

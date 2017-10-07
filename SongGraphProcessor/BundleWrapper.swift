@@ -14,20 +14,20 @@ class BundleWrapper
 {
     class func getDocumentsDirectory() -> String?
     {
-        let dirs = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory,FileManager.SearchPathDomainMask.allDomainsMask, true)
+        let dirs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         if dirs.count > 0
         {
-            return dirs[0] as String
+            return dirs[0].absoluteString
         }
         return nil
     }
     
     class func getCacheDirectory() -> String?
     {
-        let possibles = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.cachesDirectory, FileManager.SearchPathDomainMask.userDomainMask, true)
+        let possibles = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
         if possibles.count > 0
         {
-            return possibles[0] as String
+            return possibles[0].absoluteString
         }
         return nil
     }

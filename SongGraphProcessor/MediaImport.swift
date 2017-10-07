@@ -19,36 +19,13 @@ class MediaImport
     static let IPOD_SCHEME:     String = "ipod-library"
     
     // MARK: Properties.
-    var importSession: AVAssetExportSession?
-    var errorMessage:  String?
-    var errorCode:     Int?
+    var exportSession: AVAssetExportSession?
     
     // MARK: iVars.
-    var error:         NSError?
-    {
-        if let hasSession = importSession
-        {
-            if let errorMessage = errorMessage
-            {
-                if let errorCode = errorCode
-                {
-                    let errorDict: [AnyHashable: Any] = [NSLocalizedDescriptionKey : errorMessage ]
-                    return NSError(domain: MediaImport.ERROR_DOMAIN, code: errorCode, userInfo: errorDict as? [String : Any])
-                }
-                else
-                {
-                    let errorDict: [AnyHashable: Any] = [NSLocalizedDescriptionKey : errorMessage ]
-                    return NSError(domain: MediaImport.ERROR_DOMAIN, code: MediaImport.BASE_ERROR_CODE, userInfo: errorDict as? [String : Any])
-                }
-            }
-            return hasSession.error as NSError?
-        }
-        return nil
-    }
     
     var progress: Float
     {
-        if let hasSession = importSession
+        if let hasSession = exportSession
         {
             return hasSession.progress
         }
@@ -57,15 +34,7 @@ class MediaImport
     
     var status: AVAssetExportSessionStatus
     {
-        if let hasSession = importSession
-        {
-            if let _ = error
-            {
-                return AVAssetExportSessionStatus.failed
-            }
-            return hasSession.status
-        }
-        return AVAssetExportSessionStatus.unknown
+        return exportSession?.status ?? AVAssetExportSessionStatus.unknown
     }
     
     /**
@@ -85,26 +54,22 @@ class MediaImport
         guard let goodInput = input
             else
         {
-            self.errorMessage = "In startImport and the input URL is nil!"
             throw ImportErrors.inputURLMissing
         }
         guard let goodOutput = output
             else
         {
-            self.errorMessage = "In startImport and the output URL is nil!"
             throw ImportErrors.outputURLMissing
         }
         guard MediaImport.isValidInputURL(goodInput)
             else
         {
-            self.errorMessage = "In startImport and the input URL is pointing to a file with a bad extension!"
-            throw ImportErrors.badFileType(fileExtension: goodInput.absoluteString)
+            throw ImportErrors.fileTypeNotSupported(fileExtension: goodInput.pathExtension)
         }
         guard !FileManager.default.fileExists(atPath: goodOutput.path)
             else
         {
-            self.errorMessage = "In startImport and the output file already exists!"
-            throw ImportErrors.fileShouldNotExist(fileName: goodOutput.path)
+            throw ImportErrors.outputFileAlreadyExists
         }
         do
         {
@@ -112,7 +77,6 @@ class MediaImport
         }
         catch let error
         {
-            self.errorMessage = "In startImport and the import failed!"
             throw error
         }
     }
@@ -131,14 +95,19 @@ class MediaImport
     {
         let options: [String : AnyObject]? = nil
         let asset = AVURLAsset(url: input, options: options)
-        guard let haveSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough)
-            else
+        guard asset.isExportable else
         {
-            throw ImportErrors.sessionFailedToInit
+            throw ImportErrors.fileNotExportable(fileName: input.absoluteString)
         }
-        self.importSession = haveSession
         if input.pathExtension == "mp3"
         {
+            guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough)
+                else
+            {
+                throw ImportErrors.sessionFailedToInit
+            }
+            exportSession.outputURL = output
+            self.exportSession = exportSession
             do
             {
                 try self.doMP3Import(output, completionCode: completionCode)
@@ -147,28 +116,30 @@ class MediaImport
             {
                 throw error
             }
-            return
         }
         else
         {
-            haveSession.outputURL = output
-            switch input.pathExtension
+            guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough)
+                else
             {
-            case "m4a":
-                haveSession.outputFileType = AVFileType.m4a
-            case "wav":
-                haveSession.outputFileType = AVFileType.wav
-            case "aif":
-                haveSession.outputFileType = AVFileType.aifc
-            default:
-                throw ImportErrors.badFileType(fileExtension: input.pathExtension)
+                throw ImportErrors.sessionFailedToInit
             }
+            
+            self.exportSession = exportSession
         }
-        haveSession.exportAsynchronously(
+        self.exportSession!.outputURL = output
+        switch input.pathExtension {
+        case "m4a":
+            self.exportSession!.outputFileType = AVFileType.m4a
+        default:
+            self.exportSession!.outputFileType = AVFileType.mp4
+        }
+        self.exportSession!.exportAsynchronously(
             completionHandler: {
                 () -> Void in
                 completionCode(self)
         })
+
         return
     }
     
@@ -196,14 +167,21 @@ class MediaImport
                 throw ImportErrors.cantKillTempFile(fileName: movieFileURL.absoluteString)
             }
         }
-        if let hasSession  = self.importSession
+        if let hasSession  = self.exportSession
         {
             hasSession.outputURL = movieFileURL
             hasSession.outputFileType = AVFileType.mov
             hasSession.exportAsynchronously(completionHandler:
                 {
-                self.processAsMovieFile(destination, completionCode: completionCode, movieFileName: movieFileURL)
-            })
+                    do
+                    {
+                        try self.processAsMovieFile(destination, completionCode: completionCode, movieFileName: movieFileURL)
+                    }
+                    catch let error
+                    {
+                        throw error
+                    }
+                    } as! () -> Void)
         }
     }
     
@@ -217,18 +195,32 @@ class MediaImport
      - movieFileName: the file that the import session brought out of the iPod library.
      
      */
-    func processAsMovieFile(_ destination: URL, completionCode: (MediaImport) -> Void, movieFileName: URL) -> Void
+    func processAsMovieFile(_ destination: URL, completionCode: (MediaImport) -> Void, movieFileName: URL) throws -> Void
     {
         // Import either worked asynchronously or it failed and is dropping to this code.
         // The import would have used the self.importSession member and its
         // various settings like: outputURL, outputFileType.
-        if self.importSession?.status == AVAssetExportSessionStatus.failed
+        if self.exportSession?.status == AVAssetExportSessionStatus.failed
         {
-            completionCode(self)
+            if let hasSession = self.exportSession, let hasError = hasSession.error
+            {
+                throw ImportErrors.exportSessionFailed(reason: hasError.localizedDescription)
+            }
+            else
+            {
+                throw ImportErrors.exportSessionFailed(reason: "Export Session Failed for unknown reason!")
+            }
         }
-        else if self.importSession?.status == AVAssetExportSessionStatus.cancelled
+        else if self.exportSession?.status == AVAssetExportSessionStatus.cancelled
         {
-            completionCode(self)
+            if let hasSession = self.exportSession, let hasError = hasSession.error
+            {
+                throw ImportErrors.exportSessionCanceled(reason: hasError.localizedDescription)
+            }
+            else
+            {
+                throw ImportErrors.exportSessionCanceled(reason: "Export Session Canceled for unknown reason!")
+            }
         }
         else
         {
@@ -236,22 +228,9 @@ class MediaImport
             {
                 try self.extractFromQuicktimeMovie(fromMovieFile: movieFileName, to: destination)
             }
-            catch ImportErrors.cantOpenTempFile(let fileName)
+            catch let error
             {
-                self.errorMessage = "extractQuicktimeMovie failed as cannot open temp file \(fileName)!"
-                completionCode(self)
-                return
-            }
-            catch ImportErrors.cantOpenDestinationFile(let fileName)
-            {
-                self.errorMessage = "extractQuicktimeMovie failed as cannot open destination file \(fileName)!"
-                completionCode(self)
-                return
-            }
-            catch let error as NSError
-            {
-                self.errorMessage = error.localizedDescription
-                self.errorCode = error.code
+                throw error
             }
             do
             {
@@ -259,9 +238,7 @@ class MediaImport
             }
             catch
             {
-                self.errorMessage = "extractQuicktimeMovie failed as can't kill temp file \(movieFileName)"
-                completionCode(self)
-                return
+                throw ImportErrors.cantKillTempFile(fileName: movieFileName.absoluteString)
             }
             completionCode(self)
         }

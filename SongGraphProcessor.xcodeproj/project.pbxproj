@@ -49,7 +49,7 @@
 		88FA5B201DCD3862007E7A0E /* SongGraphProcessor.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SongGraphProcessor.xcdatamodel; sourceTree = "<group>"; };
 		88FA5B221DCD3862007E7A0E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		88FA5B251DCD3862007E7A0E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		88FA5B271DCD3862007E7A0E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		88FA5B271DCD3862007E7A0E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../SongGraphProcessor/Info.plist; sourceTree = "<group>"; };
 		88FA5B2D1DCD39C0007E7A0E /* SongGrapher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SongGrapher.swift; sourceTree = "<group>"; };
 		88FA5B2F1DCD3A43007E7A0E /* BundleWrapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BundleWrapper.swift; sourceTree = "<group>"; };
 		88FA5B311DCD3A5B007E7A0E /* RINGM___.TTF */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RINGM___.TTF"; sourceTree = "<group>"; };
@@ -103,9 +103,9 @@
 		8834C8FD1DCE10AD00D325C0 /* SongGraphing */ = {
 			isa = PBXGroup;
 			children = (
-				88FA5B351DCD3AA0007E7A0E /* MediaImport.swift */,
 				88FA5B391DCD3F37007E7A0E /* ImportErrors.swift */,
 				884E21AA1DD12D9E006E6049 /* ImageErrors.swift */,
+				88FA5B351DCD3AA0007E7A0E /* MediaImport.swift */,
 				88FA5B331DCD3A84007E7A0E /* UIImage_Extension.swift */,
 				8802297A1DD5206D00EEC97B /* SongErrors.swift */,
 			);
@@ -132,7 +132,6 @@
 		8834C9001DCE112400D325C0 /* ApplicationLevel */ = {
 			isa = PBXGroup;
 			children = (
-				88FA5B271DCD3862007E7A0E /* Info.plist */,
 				88FA5B181DCD3862007E7A0E /* AppDelegate.swift */,
 				88FA5B2F1DCD3A43007E7A0E /* BundleWrapper.swift */,
 				884E21AC1DD1E8C4006E6049 /* CentralCode.swift */,
@@ -147,6 +146,7 @@
 				88552A211E09D96500BA7AE9 /* ViewController.swift */,
 				88552A261E09D96500BA7AE9 /* Main.storyboard */,
 				88552A291E09D96500BA7AE9 /* Assets.xcassets */,
+				88FA5B271DCD3862007E7A0E /* Info.plist */,
 				88552A2B1E09D96500BA7AE9 /* Info.plist */,
 			);
 			path = TVPractice;
@@ -354,7 +354,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.1;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -404,7 +404,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
