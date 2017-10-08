@@ -103,7 +103,7 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
         cell.neLabel.text = currentSong.name
         if let pItems = currentSong.getPracticeItems()
         {
-            cell.seLabel.text = "Pracice Count: \(pItems.count)"
+            cell.seLabel.text = "Practice Count: \(pItems.count)"
         }
         return cell
     }
@@ -165,7 +165,7 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
                 }
                 else
                 {
-                    CentralCode.showError(message: "Failed to aquire a path for the temporary Import File!  Note: This file is not DRM protected so who knows why?", title: "Song Choice Error", onViewController: self)
+                    CentralCode.showError(message: "Failed to acquire a path for the temporary Import File!  Note: This file is not DRM protected so who knows why?", title: "Song Choice Error", onViewController: self)
                 }
                 CentralCode.stopSpinner(self.spinner)
                 return
@@ -191,9 +191,18 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
                     {
                         try importGuy.doImport(inputURL, output: importCacheFileURL, completionCode:
                         {
-                            [weak self] (importGuy) in
+                            [weak self] (importGuy, error) in
                             if let strongSelf = self
                             {
+                                if let hasError = error
+                                {
+                                    CentralCode.runInMainThread(code:
+                                        {
+                                            CentralCode.showError(message: "\(hasError.localizedDescription)", title: "Import Error", onViewController: strongSelf)
+                                            CentralCode.stopSpinner(strongSelf.spinner)
+                                    })
+                                    return
+                                }
                                 if importGuy.status == AVAssetExportSessionStatus.completed
                                 {
                                     if FileManager.default.fileExists(atPath: importCacheFileURL.path)

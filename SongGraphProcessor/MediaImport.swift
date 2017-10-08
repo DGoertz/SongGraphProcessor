@@ -49,7 +49,7 @@ class MediaImport
      - output can't be nil.
      - the output file should not exist yet.
      */
-    func doImport(_ input: URL?, output: URL?, completionCode: @escaping (MediaImport) -> Void ) throws -> Void
+    func doImport(_ input: URL?, output: URL?, completionCode: @escaping (MediaImport, Error?) -> Void ) throws -> Void
     {
         guard let goodInput = input
             else
@@ -91,14 +91,10 @@ class MediaImport
      - throws:
      - the import session must be creatable.
      */
-    func completeImport(_ input: URL, output: URL, completionCode: @escaping (MediaImport) -> Void) throws -> Void
+    func completeImport(_ input: URL, output: URL, completionCode: @escaping (MediaImport, Error?) -> Void) throws -> Void
     {
         let options: [String : AnyObject]? = nil
         let asset = AVURLAsset(url: input, options: options)
-        guard asset.isExportable else
-        {
-            throw ImportErrors.fileNotExportable(fileName: input.absoluteString)
-        }
         if input.pathExtension == "mp3"
         {
             guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough)
@@ -107,6 +103,7 @@ class MediaImport
                 throw ImportErrors.sessionFailedToInit
             }
             exportSession.outputURL = output
+            exportSession.outputFileType = AVFileType.mov
             self.exportSession = exportSession
             do
             {
@@ -116,6 +113,7 @@ class MediaImport
             {
                 throw error
             }
+            return
         }
         else
         {
@@ -124,20 +122,25 @@ class MediaImport
             {
                 throw ImportErrors.sessionFailedToInit
             }
-            
+            exportSession.outputURL = output
             self.exportSession = exportSession
         }
-        self.exportSession!.outputURL = output
         switch input.pathExtension {
         case "m4a":
             self.exportSession!.outputFileType = AVFileType.m4a
+        case "aac":
+            self.exportSession!.outputFileType = AVFileType.ac3
+        case "wav":
+            self.exportSession!.outputFileType = AVFileType.wav
+        case "mov":
+            self.exportSession!.outputFileType = AVFileType.mov
         default:
             self.exportSession!.outputFileType = AVFileType.mp4
         }
         self.exportSession!.exportAsynchronously(
             completionHandler: {
                 () -> Void in
-                completionCode(self)
+                completionCode(self, nil)
         })
 
         return
@@ -151,7 +154,7 @@ class MediaImport
      - throws:
      - the old temporary movie file must be able to be cleaned out before proceeding.
      */
-    func doMP3Import(_ destination: URL, completionCode: @escaping (MediaImport) -> Void) throws -> Void
+    func doMP3Import(_ destination: URL, completionCode: @escaping (MediaImport, Error?) -> Void) throws -> Void
     {
         let movieFileURL = destination.deletingPathExtension().appendingPathExtension("mov")
         let aFileManager = FileManager.default
@@ -173,15 +176,19 @@ class MediaImport
             hasSession.outputFileType = AVFileType.mov
             hasSession.exportAsynchronously(completionHandler:
                 {
-                    do
-                    {
-                        try self.processAsMovieFile(destination, completionCode: completionCode, movieFileName: movieFileURL)
-                    }
-                    catch let error
-                    {
-                        throw error
-                    }
-                    } as! () -> Void)
+                    () -> Void in
+    
+                        do
+                        {
+                            try self.processAsMovieFile(destination, movieFileName: movieFileURL)
+                        }
+                        catch let error
+                        {
+                            completionCode(self, error)
+                        }
+                    completionCode(self, nil)
+                    
+            })
         }
     }
     
@@ -195,7 +202,7 @@ class MediaImport
      - movieFileName: the file that the import session brought out of the iPod library.
      
      */
-    func processAsMovieFile(_ destination: URL, completionCode: (MediaImport) -> Void, movieFileName: URL) throws -> Void
+    func processAsMovieFile(_ destination: URL, movieFileName: URL) throws -> Void
     {
         // Import either worked asynchronously or it failed and is dropping to this code.
         // The import would have used the self.importSession member and its
@@ -240,7 +247,6 @@ class MediaImport
             {
                 throw ImportErrors.cantKillTempFile(fileName: movieFileName.absoluteString)
             }
-            completionCode(self)
         }
     }
     

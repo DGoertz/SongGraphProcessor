@@ -25,9 +25,10 @@ class BundleWrapper
     class func getCacheDirectory() -> String?
     {
         let possibles = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
-        if possibles.count > 0
+        let hasOne = possibles[0].absoluteString
+        if hasOne.count > 0
         {
-            return possibles[0].absoluteString
+            return hasOne
         }
         return nil
     }
