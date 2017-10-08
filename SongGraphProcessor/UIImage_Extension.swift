@@ -23,34 +23,35 @@ extension UIImage
     
     static let kAlbumArtworkSize: Int                      = 63
     
-    static let kGraphTopMargin: Int                        = 30
-    static let kGraphBottomMargin: Int                     = 10
+    static let kGraphTopMargin: Int                        = 80
+    static let kGraphBottomMargin: Int                     = 30
     static let kGraphMiddleMargin: Int                     = 30
-    static let kWaveMaxHeight: Int                         = 50
+    static let kWaveMaxHeight: Int                         = 100
     
-    static let kTimeNumberLineThickness: Int               = 2
-    static let kTimeNumberLineHeight: Int                  = 17
+    static let kTNLThickness: Int                          = 2
+    static let kTNLHeight: Int                             = 20
     
-    static let kTimeNumberLineMinuteMarkThickness: Int     = 4
-    static let kTimeNumberLineMinuteMarkHeight: Int        = 13
+    static let kTNLMinuteMarkThickness: Int                = 4
+    static let kTNLMinuteMarkHeight: Int                   = 15
     
-    static let kTimeNumberLineFiveSecondMarkThickness: Int = 2
-    static let kTimeNumberLineFiveSecondMarkHeight: Int    = 8
+    static let kTNLFiveSecondMarkThickness: Int            = 2
+    static let kTNLFiveSecondMarkHeight: Int               = 10
     
-    static let kTimeNumberLineOneSecondMarkThickness: Int  = 2
-    static let kTimeNumberLineOneSecondMarkHeight: Int     = 5
+    static let kTNLOneSecondMarkThickness: Int             = 2
+    static let kTNLOneSecondMarkHeight: Int                = 8
     
-    static let kTimeLineNumberLineTextMargin: Int          = 2
-    static let kTimeLineNumberLineTextMarkerOffset: Int    = 15
-    static let kTimeLineNumberLineTextMarkerMargin: Int    = 4
+    static let kTNLTextMargin: Int                         = 2
+    static let kTNLTextMarkerOffset: Int                   = 15
+    static let kTNLTextMarkerMargin: Int                   = 4
     
-    static let kGraphMarkerBaseWidth: CGFloat              = 10
-    static let kGraphMarkerBaseHeight: CGFloat             = 20
-    static let kGraphStartMarkerWidth: CGFloat             = 3
-    static let kGraphEndMarkerWidth: CGFloat               = 3
+    static let kPIMarkerBaseWidth: CGFloat                 = 10
+    static let kPIMarkerBaseHeight: CGFloat                = 20
+    static let kPIMarkerWidth: CGFloat                     = 3
     
     static let kStepperDelta: Int                          = 1
     
+    // Don't know why these are here.  Not used yet.
+    // They might be error codes I intended for unique error handling!
     static let kNumberOfSecondsOffset: Int                 = 3
     static let kPracticeItemMissingName: Int               = 100
     static let kPracticeItemBadStartStop: Int              = 101
@@ -64,8 +65,7 @@ extension UIImage
     static let kGraphColorLeftChannel: UIColor       = UIColor.red
     static let kGraphColorRightChannel: UIColor      = UIColor.yellow
     static let kGraphColorTimeLine: UIColor          = UIColor.green
-    static let kGraphColorTimeNumberMarkers: UIColor = UIColor.white
-    static let kGraphColorTimeNumberLetters: UIColor = UIColor.white
+    static let kGraphColorTimeNumberLetter: UIColor  = UIColor.red
     
     static let kGraphColorMarkerBase: UIColor        = UIColor.blue
     static let kGraphColorStartMarker: UIColor       = UIColor.orange
@@ -292,7 +292,7 @@ extension UIImage
         
         let topHalfHeight: Float = Float(UIImage.kGraphTopMargin + (UIImage.kWaveMaxHeight * 2) + UIImage.kGraphMiddleMargin)
         let bottomHalfHeight: Float = Float((UIImage.kWaveMaxHeight * 2) + UIImage.kGraphBottomMargin)
-        let lineNumberHeight: Float = Float(UIImage.kTimeNumberLineHeight + UIImage.kTimeLineNumberLineTextMargin)
+        let lineNumberHeight: Float = Float(UIImage.kTNLHeight + UIImage.kTNLTextMargin)
         
         // Painted screen height should dictate height minimum.
         let totalImageHeight: Float = Float(ceil(topHalfHeight + bottomHalfHeight + lineNumberHeight)) > Float(maxImageHeight) ? Float(ceil(topHalfHeight + bottomHalfHeight + lineNumberHeight)) : Float(maxImageHeight)
@@ -302,7 +302,7 @@ extension UIImage
         // TIME_NUMBER_LINE_QUARTER_SECOND_MARK_HEIGHT on the quarter second markings.
         let part1: Float = Float(UIImage.kGraphTopMargin + (UIImage.kWaveMaxHeight * 2))
         let part2: Float = Float(UIImage.kGraphMiddleMargin + (UIImage.kWaveMaxHeight * 2))
-        let part3: Float = Float(UIImage.kTimeNumberLineHeight)
+        let part3: Float = Float(UIImage.kTNLHeight)
         let numberLineBottom: Float = part1 + part2 + part3
         
         // The width of the resulting Graphic is really the number of samples to be drawn.
@@ -337,7 +337,7 @@ extension UIImage
         let centerRight: CGFloat = CGFloat(UIImage.kGraphTopMargin + (UIImage.kWaveMaxHeight * 2) + UIImage.kGraphMiddleMargin + UIImage.kWaveMaxHeight)
         
         // Draw line marking the time scale horizontal.
-        context.setLineWidth(CGFloat(kTimeNumberLineThickness))
+        context.setLineWidth(CGFloat(kTNLThickness))
         context.move(to: CGPoint(x: 0, y: Int(numberLineBottom)))
         context.addLine(to: CGPoint(x: sampleCount, y: Int(numberLineBottom)))
         context.setStrokeColor(timeLineColor)
@@ -353,13 +353,13 @@ extension UIImage
         
         var sizeOfWorstCase:CGSize = (worstCase as NSString).size(withAttributes: fontAttributes)
         
-        var showFiveSecondLabels = CGFloat(pixelsPerFiveSecondInterval) > (sizeOfWorstCase.width + CGFloat(UIImage.kTimeLineNumberLineTextMarkerMargin))
+        var showFiveSecondLabels = CGFloat(pixelsPerFiveSecondInterval) > (sizeOfWorstCase.width + CGFloat(UIImage.kTNLTextMarkerMargin))
         
         if showFiveSecondLabels == false
         {
             worstCase = "99"
             sizeOfWorstCase = (worstCase as NSString).size(withAttributes: fontAttributes)
-            showFiveSecondLabels = CGFloat(pixelsPerFiveSecondInterval) > (sizeOfWorstCase.width + CGFloat(UIImage.kTimeLineNumberLineTextMarkerMargin))
+            showFiveSecondLabels = CGFloat(pixelsPerFiveSecondInterval) > (sizeOfWorstCase.width + CGFloat(UIImage.kTNLTextMarkerMargin))
             if showFiveSecondLabels == true
             {
                 // The spacing is too tight to show the units, i.e. SEC.
@@ -412,9 +412,9 @@ extension UIImage
             
             if onSecondBoundary && !onFiveSecondBoundary && !onMinuteBoundary
             {
-                context.setLineWidth(CGFloat(UIImage.kTimeNumberLineOneSecondMarkThickness))
+                context.setLineWidth(CGFloat(UIImage.kTNLOneSecondMarkThickness))
                 context.setStrokeColor(timeLineColor)
-                context.move(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) - CGFloat(UIImage.kTimeNumberLineOneSecondMarkHeight)))
+                context.move(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) - CGFloat(UIImage.kTNLOneSecondMarkHeight)))
                 context.addLine(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom)))
                 context.strokePath()
             }
@@ -424,20 +424,20 @@ extension UIImage
                 
             {
                 currentFiveSecond = currentFiveSecond + 5
-                context.setLineWidth(CGFloat(UIImage.kTimeNumberLineFiveSecondMarkThickness))
+                context.setLineWidth(CGFloat(UIImage.kTNLFiveSecondMarkThickness))
                 context.setStrokeColor(timeLineColor)
-                context.move(to: CGPoint(x: CGFloat(currentColumn), y: (CGFloat(numberLineBottom) - CGFloat(UIImage.kTimeNumberLineFiveSecondMarkHeight))))
+                context.move(to: CGPoint(x: CGFloat(currentColumn), y: (CGFloat(numberLineBottom) - CGFloat(UIImage.kTNLFiveSecondMarkHeight))))
                 context.addLine(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom)))
                 context.strokePath()
                 
                 if showFiveSecondLabels == true
                 {
-                    var refPoint: CGPoint = CGPoint(x: CGFloat(currentColumn), y: CGFloat(CGFloat(numberLineBottom) + CGFloat(UIImage.kTimeLineNumberLineTextMargin / 2)))
+                    var refPoint: CGPoint = CGPoint(x: CGFloat(currentColumn), y: CGFloat(CGFloat(numberLineBottom) + CGFloat(UIImage.kTNLTextMargin / 2)))
                     
                     let valueInInterval: Int = currentFiveSecond % 60
                     if useFiveSecUnitsLabel == true
                     {
-                        refPoint.y = refPoint.y + CGFloat(UIImage.kTimeLineNumberLineTextMarkerOffset)
+                        refPoint.y = refPoint.y + CGFloat(UIImage.kTNLTextMarkerOffset)
                         UIImage.printUnitFrom(refPoint: refPoint, itsValue: valueInInterval, drawContext: context, usingUnit: "sec", andAddedUnit: currentMinute, andFont: printingFont!)
                     }
                     else
@@ -450,19 +450,19 @@ extension UIImage
             // Draw the full minute boundary tick marks.
             if onMinuteBoundary == true
             {
-                context.setLineWidth(CGFloat(UIImage.kTimeNumberLineMinuteMarkThickness))
+                context.setLineWidth(CGFloat(UIImage.kTNLMinuteMarkThickness))
                 context.setStrokeColor(timeLineColor)
-                context.move(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) - CGFloat(UIImage.kTimeNumberLineMinuteMarkHeight)))
+                context.move(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) - CGFloat(UIImage.kTNLMinuteMarkHeight)))
                 context.addLine(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom)))
                 context.strokePath()
                 
-                var refPoint: CGPoint = CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) + CGFloat(UIImage.kTimeLineNumberLineTextMargin / 2))
+                var refPoint: CGPoint = CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) + CGFloat(UIImage.kTNLTextMargin / 2))
                 
                 // onMinuteBoundary will be true at the very start so we have to detect
                 // being at least one sample down the way.
                 if currentColumn > 0
                 {
-                    refPoint.y = refPoint.y + CGFloat(UIImage.kTimeLineNumberLineTextMarkerOffset)
+                    refPoint.y = refPoint.y + CGFloat(UIImage.kTNLTextMarkerOffset)
                     currentMinute = currentMinute + 1
                     UIImage.printUnitFrom(refPoint: refPoint, itsValue: currentMinute, drawContext: context, usingUnit: "min", andAddedUnit: 0, andFont: printingFont!)
                     currentFiveSecond = currentFiveSecond + 5
@@ -528,8 +528,7 @@ extension UIImage
     {
         // Preserve callers Context by pushing it onto a stack.
         drawContext.saveGState()
-        let timeNumberColor: UIColor = UIImage.kGraphColorTimeNumberMarkers
-        let timeLineLetterColor: UIColor = UIImage.kGraphColorTimeNumberLetters
+        let timeNumberColor: UIColor = UIImage.kGraphColorTimeNumberLetter
         let fontAttributes: [NSAttributedStringKey : Any] = [.font : UIFont(name: withFont.fontName, size: withFont.pointSize) as Any, NSAttributedStringKey(rawValue: NSAttributedStringKey.foregroundColor.rawValue) : timeNumberColor]
         let valueToBePrinted: NSString = forValue as NSString
         let textSize: CGSize = valueToBePrinted.size(withAttributes: fontAttributes)
@@ -538,7 +537,6 @@ extension UIImage
         // Draw the text.
         drawContext.setShouldAntialias(true)
         drawContext.setTextDrawingMode(CGTextDrawingMode.fill)
-        drawContext.setStrokeColor(timeLineLetterColor.cgColor)
         let textPoint: CGPoint = CGPoint(x: atPoint.x - halfTextWidth, y: atPoint.y + quarterTextHeight)
         valueToBePrinted.draw(at: textPoint, withAttributes: fontAttributes)
         drawContext.restoreGState()
@@ -583,31 +581,31 @@ extension UIImage
             let halfHeight: CGFloat = onSongGraph.size.height / 2
             
             // Draw the Starter Marker Base.
-            drawContext.setLineWidth(UIImage.kGraphMarkerBaseWidth)
+            drawContext.setLineWidth(UIImage.kPIMarkerBaseWidth)
             let startX: CGFloat = CGFloat(practiceItem.startTime) * withPixelsPerSecond
             drawContext.move(to: CGPoint(x: startX, y: UIImage.tabBarHeight))
-            drawContext.addLine(to: CGPoint(x: startX, y: UIImage.tabBarHeight + CGFloat(UIImage.kGraphMarkerBaseHeight)))
+            drawContext.addLine(to: CGPoint(x: startX, y: UIImage.tabBarHeight + CGFloat(UIImage.kPIMarkerBaseHeight)))
             drawContext.setStrokeColor(baseMarkerColor)
             drawContext.strokePath()
             
             // Draw the rest of the Starter Marker.
-            drawContext.setLineWidth(UIImage.kGraphStartMarkerWidth)
-            drawContext.move(to: CGPoint(x: startX, y: UIImage.tabBarHeight + UIImage.kGraphMarkerBaseHeight))
+            drawContext.setLineWidth(UIImage.kPIMarkerWidth)
+            drawContext.move(to: CGPoint(x: startX, y: UIImage.tabBarHeight + UIImage.kPIMarkerBaseHeight))
             drawContext.addLine(to: CGPoint(x: startX, y: onSongGraph.size.height))
             drawContext.setStrokeColor(startMarkerColor)
             drawContext.strokePath()
             
             // Draw the End Marker Base.
-            drawContext.setLineWidth(UIImage.kGraphMarkerBaseWidth)
+            drawContext.setLineWidth(UIImage.kPIMarkerBaseWidth)
             let endX: CGFloat = CGFloat(practiceItem.endTime) * withPixelsPerSecond
             drawContext.move(to: CGPoint(x: endX, y: UIImage.tabBarHeight))
-            drawContext.addLine(to: CGPoint(x: endX, y: UIImage.tabBarHeight + UIImage.kGraphMarkerBaseHeight))
+            drawContext.addLine(to: CGPoint(x: endX, y: UIImage.tabBarHeight + UIImage.kPIMarkerBaseHeight))
             drawContext.setStrokeColor(baseMarkerColor)
             drawContext.strokePath()
             
             // Draw the rest of the End Marker.
-            drawContext.setLineWidth(UIImage.kGraphEndMarkerWidth)
-            drawContext.move(to: CGPoint(x: endX, y: UIImage.tabBarHeight + UIImage.kGraphMarkerBaseHeight))
+            drawContext.setLineWidth(UIImage.kPIMarkerWidth)
+            drawContext.move(to: CGPoint(x: endX, y: UIImage.tabBarHeight + UIImage.kPIMarkerBaseHeight))
             drawContext.addLine(to: CGPoint(x: endX, y: onSongGraph.size.height))
             drawContext.setStrokeColor(endMarkerColor)
             drawContext.strokePath()

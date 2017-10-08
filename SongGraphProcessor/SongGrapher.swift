@@ -34,12 +34,12 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     
     let context:    NSManagedObjectContext = CentralCode.getDBContext()
     
-    var halfScreenWidth: CGFloat = 0
+    var halfScreenWidth:      CGFloat = 0
     var lastScreenHalfWidth:  CGFloat = 0
     
     static let pixelsPerSecond: CGFloat = 50
     static let tabBarHeight:    CGFloat = 45
-    static let tockSound: SystemSoundID = 1104
+    static let tockSound:       SystemSoundID = 1104
     
     // MARK: GUI Contol References.
     
@@ -496,6 +496,8 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
             {
                 if let foundSong = try Song.getSong(inContext: context, mpItem: mediaItemChosen)
                 {
+                    // Song image exists so process it to view and return.
+                    // ELSE below the catch phrases is the code to build the graph from scratch.
                     if let songImage: UIImage = UIImage(data: foundSong.graph! as Data)
                     {
                         self.songImage = songImage
