@@ -46,12 +46,49 @@ class MPMediaWrapper
     final class func getSong(withId: MPMediaEntityPersistentID) -> MPMediaItem?
     {
         let query: MPMediaQuery = MPMediaQuery()
-        let albumPredicate = MPMediaPropertyPredicate(value: withId, forProperty:MPMediaItemPropertyPersistentID)
-        query.addFilterPredicate(albumPredicate)
+        let songPredicate = MPMediaPropertyPredicate(value: withId, forProperty:MPMediaItemPropertyPersistentID)
+        query.addFilterPredicate(songPredicate)
         if let results = query.items
         {
             return results[0]
         }
         return nil
     }
+    
+    final class func isInCloud(theSongID: MPMediaEntityPersistentID) -> Bool
+    {
+        let query: MPMediaQuery = MPMediaQuery()
+        let songIDPredicate = MPMediaPropertyPredicate(value: theSongID, forProperty:MPMediaItemPropertyPersistentID)
+        let isInCloudPredicate = MPMediaPropertyPredicate(value: true, forProperty:MPMediaItemPropertyIsCloudItem)
+        query.addFilterPredicate(songIDPredicate)
+        query.addFilterPredicate(isInCloudPredicate)
+        if let results = query.items
+        {
+            let firstEntry = results.first
+            return firstEntry != nil
+        }
+        return false
+    }
+    
+    final class func isDRMProtected(theSongID: MPMediaEntityPersistentID) -> Bool
+    {
+        let query: MPMediaQuery = MPMediaQuery()
+        let songIDPredicate = MPMediaPropertyPredicate(value: theSongID, forProperty:MPMediaItemPropertyPersistentID)
+        query.addFilterPredicate(songIDPredicate)
+        if let results = query.items
+        {
+            let firstEntry = results.first
+            return firstEntry != nil && firstEntry!.hasProtectedAsset
+        }
+        return false
+    }
 }
+
+
+
+
+
+
+
+
+

@@ -152,30 +152,31 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
         if let hasChosenASong = self.chosenMediaItem
         {
             self.spinner = CentralCode.startSpinner(onView: self.view)
+            if mediaPicker != nil
+            {
+                mediaPicker!.dismiss(animated: true, completion: nil)
+            }
+            if MPMediaWrapper.isDRMProtected(theSongID: hasChosenASong.persistentID)
+            {
+                CentralCode.showError(message: "Sorry that song is protected by DRM!", title: "Song Security Error", onViewController: self)
+                CentralCode.stopSpinner(self.spinner)
+                return
+            }
+            if MPMediaWrapper.isInCloud(theSongID: hasChosenASong.persistentID)
+            {
+                CentralCode.showError(message: "Sorry that song is in the cloud.  Please download it in the iTunes App and try again!", title: "Song Location Error", onViewController: self)
+                CentralCode.stopSpinner(self.spinner)
+                return
+            }
             guard let importCacheFileURL = BundleWrapper.getImportCacheFileURL(forSong: hasChosenASong)
                 else
             {
-                if mediaPicker != nil
-                {
-                    mediaPicker!.dismiss(animated: true, completion: nil)
-                }
-                if hasChosenASong.hasProtectedAsset == true
-                {
-                    CentralCode.showError(message: "Sorry that song is protected by DRM!", title: "Song Choice Error", onViewController: self)
-                }
-                else
-                {
-                    CentralCode.showError(message: "Failed to acquire a path for the temporary Import File!  Note: This file is not DRM protected so who knows why?", title: "Song Choice Error", onViewController: self)
-                }
+                CentralCode.showError(message: "Failed to acquire a path for the temporary Import File!  Note: This file is not DRM protected so who knows why?", title: "Song Choice Error", onViewController: self)
                 CentralCode.stopSpinner(self.spinner)
                 return
             }
             // Preceding code guarntees that the assetURL is not nil!
             let inputURL: URL = hasChosenASong.assetURL!
-            if mediaPicker != nil
-            {
-                mediaPicker!.dismiss(animated: true, completion: nil)
-            }
             let context = CentralCode.getDBContext()
             do
             {
