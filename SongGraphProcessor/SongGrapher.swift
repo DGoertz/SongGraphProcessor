@@ -32,7 +32,7 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     var scrollView: UIScrollView?
     var reticle:    UIImageView?
     
-    let context:    NSManagedObjectContext = CentralCode.getDBContext()
+    var context:    NSManagedObjectContext?
     
     var halfScreenWidth:      CGFloat = 0
     var lastScreenHalfWidth:  CGFloat = 0
@@ -133,7 +133,7 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
         {
             if self.songPlayer!.isPlaying
             {
-                self.currentPI = PracticeItem(context: context)
+                self.currentPI = PracticeItem(context: context!)
                 self.currentPI!.forSong = song
                 self.currentPI!.startTime = self.songPlayer!.currentTime
                 self.currentMode = .recording
@@ -418,7 +418,7 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
                 return
             }
             pi.name = withName
-            try self.context.save()
+            try self.context!.save()
             if let newSongGraph: UIImage = try UIImage.drawPracticeItems(forSong: self.song!, withPixelsPerSecond: SongGrapher.pixelsPerSecond)
             {
                 self.putUpSongGraph(graph: newSongGraph)
@@ -491,10 +491,9 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     {
         if let mediaItemChosen = songChosen
         {
-            self.spinner = CentralCode.startSpinner(onView: self.view)
             do
             {
-                if let foundSong = try Song.getSong(inContext: context, mpItem: mediaItemChosen)
+                if let foundSong = try Song.getSong(inContext: context!, mpItem: mediaItemChosen)
                 {
                     // Song image exists so process it to view and return.
                     // ELSE below the catch phrases is the code to build the graph from scratch.
@@ -514,27 +513,23 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
                         {
                             CentralCode.showError(message: "\(err.localizedDescription)", title: "Error Showing Song Graph", onViewController: self)
                         }
-                        CentralCode.stopSpinner(self.spinner)
-                        return
+                       return
                     }
                 }
             }
             catch SongErrors.idIsNotUnique
             {
                 CentralCode.showError(message: "Two songs were found with the same ID!", title: "Song Read Error", onViewController: self)
-                CentralCode.stopSpinner(self.spinner)
                 return
             }
             catch SongErrors.selectFailed(errorMessage: let errorMessage)
             {
                 CentralCode.showError(message: errorMessage, title: "Song Read Error", onViewController: self)
-                CentralCode.stopSpinner(self.spinner)
                 return
             }
             catch let error
             {
                 CentralCode.showError(message: "Song not found - OS ERROR is: \(error.localizedDescription)", title: "Song Read Error", onViewController: self)
-                CentralCode.stopSpinner(self.spinner)
                 return
             }
             // Assumption at this point is:
@@ -566,7 +561,6 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
                                         catch let error
                                         {
                                             CentralCode.showError(message: "Failed to clean up Import Cache File after producing a Song Graph: \(importCacheFileURL).  OS error is: \(error.localizedDescription)", title: "File Deletion Error", onViewController: strongSelf)
-                                            CentralCode.stopSpinner(strongSelf.spinner)
                                             return
                                         }
                                     }
@@ -577,21 +571,18 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
                                         strongSelf.putUpSongGraph(graph: songImage)
                                         if let pngRepresentation = UIImagePNGRepresentation(songImage)
                                         {
-                                            strongSelf.song = strongSelf.updateSongInDb(inContext: strongSelf.context, aSong: mediaItemChosen, withGraph: pngRepresentation)
-                                            CentralCode.stopSpinner(strongSelf.spinner)
+                                            strongSelf.song = strongSelf.updateSongInDb(inContext: strongSelf.context!, aSong: mediaItemChosen, withGraph: pngRepresentation)
                                             return
                                         }
                                         else
                                         {
                                             CentralCode.showError(message: "Failed to convert the Song Graph Image to a PNG!", title: "Song Graph Error", onViewController: strongSelf)
-                                            CentralCode.stopSpinner(strongSelf.spinner)
                                             return
                                         }
                                     }
                                     else
                                     {
                                         CentralCode.showError(message: "Song Graph Image is nil!", title: "Song Graph Error", onViewController: strongSelf)
-                                        CentralCode.stopSpinner(strongSelf.spinner)
                                         return
                                     }
                             })
@@ -601,7 +592,6 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
             catch let err
             {
                 CentralCode.showError(message: "\(err.localizedDescription)", title: "Song Graph Error", onViewController: self)
-                CentralCode.stopSpinner(self.spinner)
                 return
             }
         }

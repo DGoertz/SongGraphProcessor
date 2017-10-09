@@ -15,9 +15,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
 
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
-        return true
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool
+    {
+        if let hasRoot = self.window?.rootViewController
+        {
+            if let startNav = hasRoot as? UINavigationController
+            {
+                if let isSongsTVC = startNav.topViewController as? SongsTVC
+                {
+                    persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+                    isSongsTVC.context = persistentContainer.viewContext
+                    return true
+                }
+            }
+        }
+        return false
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

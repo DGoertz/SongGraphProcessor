@@ -16,7 +16,7 @@ import CoreData
 extension UIImage
 {
     // MARK: Constants.
-    static let tabBarHeight:    CGFloat                    = 45
+    
     static let kFontName: String                           = "ringBearer"
     static let kFontSize: Int                              = 14
     static let kPIFontSize: Int                            = 20
@@ -44,6 +44,7 @@ extension UIImage
     static let kTNLTextMarkerOffset: Int                   = 15
     static let kTNLTextMarkerMargin: Int                   = 4
     
+    static let kPIMarkerBaseY:    CGFloat                  = 45
     static let kPIMarkerBaseWidth: CGFloat                 = 10
     static let kPIMarkerBaseHeight: CGFloat                = 20
     static let kPIMarkerWidth: CGFloat                     = 3
@@ -65,6 +66,11 @@ extension UIImage
     static let kGraphColorLeftChannel: UIColor       = UIColor.red
     static let kGraphColorRightChannel: UIColor      = UIColor.yellow
     static let kGraphColorTimeLine: UIColor          = UIColor.green
+    
+    static let kGraphColorOneSecTick                 = UIColor.cyan
+    static let kGraphColorFiveSecTick                = UIColor.magenta
+    static let kGraphColorOneMinTick                 = UIColor.darkGray
+    
     static let kGraphColorTimeNumberLetter: UIColor  = UIColor.red
     
     static let kGraphColorMarkerBase: UIColor        = UIColor.blue
@@ -410,22 +416,23 @@ extension UIImage
             let onFiveSecondBoundary: Bool = (currentColumn % pixelsPerFiveSecondInterval) == 0
             let onMinuteBoundary: Bool = (currentColumn % pixelsPerMinute) == 0
             
+            // One second time tick!
             if onSecondBoundary && !onFiveSecondBoundary && !onMinuteBoundary
             {
                 context.setLineWidth(CGFloat(UIImage.kTNLOneSecondMarkThickness))
-                context.setStrokeColor(timeLineColor)
+                context.setStrokeColor(UIImage.kGraphColorOneSecTick.cgColor)
                 context.move(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) - CGFloat(UIImage.kTNLOneSecondMarkHeight)))
                 context.addLine(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom)))
                 context.strokePath()
             }
             
-            // Draw the five second boundary tick marks.
+            // Five second time tick!
             if onFiveSecondBoundary && !onMinuteBoundary
                 
             {
                 currentFiveSecond = currentFiveSecond + 5
                 context.setLineWidth(CGFloat(UIImage.kTNLFiveSecondMarkThickness))
-                context.setStrokeColor(timeLineColor)
+                context.setStrokeColor(UIImage.kGraphColorFiveSecTick.cgColor)
                 context.move(to: CGPoint(x: CGFloat(currentColumn), y: (CGFloat(numberLineBottom) - CGFloat(UIImage.kTNLFiveSecondMarkHeight))))
                 context.addLine(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom)))
                 context.strokePath()
@@ -447,11 +454,11 @@ extension UIImage
                 }
             }
             
-            // Draw the full minute boundary tick marks.
+            // Minute time tick.
             if onMinuteBoundary == true
             {
                 context.setLineWidth(CGFloat(UIImage.kTNLMinuteMarkThickness))
-                context.setStrokeColor(timeLineColor)
+                context.setStrokeColor(UIImage.kGraphColorOneMinTick.cgColor)
                 context.move(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom) - CGFloat(UIImage.kTNLMinuteMarkHeight)))
                 context.addLine(to: CGPoint(x: CGFloat(currentColumn), y: CGFloat(numberLineBottom)))
                 context.strokePath()
@@ -583,14 +590,14 @@ extension UIImage
             // Draw the Starter Marker Base.
             drawContext.setLineWidth(UIImage.kPIMarkerBaseWidth)
             let startX: CGFloat = CGFloat(practiceItem.startTime) * withPixelsPerSecond
-            drawContext.move(to: CGPoint(x: startX, y: UIImage.tabBarHeight))
-            drawContext.addLine(to: CGPoint(x: startX, y: UIImage.tabBarHeight + CGFloat(UIImage.kPIMarkerBaseHeight)))
+            drawContext.move(to: CGPoint(x: startX, y: UIImage.kPIMarkerBaseY))
+            drawContext.addLine(to: CGPoint(x: startX, y: UIImage.kPIMarkerBaseY + CGFloat(UIImage.kPIMarkerBaseHeight)))
             drawContext.setStrokeColor(baseMarkerColor)
             drawContext.strokePath()
             
             // Draw the rest of the Starter Marker.
             drawContext.setLineWidth(UIImage.kPIMarkerWidth)
-            drawContext.move(to: CGPoint(x: startX, y: UIImage.tabBarHeight + UIImage.kPIMarkerBaseHeight))
+            drawContext.move(to: CGPoint(x: startX, y: UIImage.kPIMarkerBaseY + UIImage.kPIMarkerBaseHeight))
             drawContext.addLine(to: CGPoint(x: startX, y: onSongGraph.size.height))
             drawContext.setStrokeColor(startMarkerColor)
             drawContext.strokePath()
@@ -598,14 +605,14 @@ extension UIImage
             // Draw the End Marker Base.
             drawContext.setLineWidth(UIImage.kPIMarkerBaseWidth)
             let endX: CGFloat = CGFloat(practiceItem.endTime) * withPixelsPerSecond
-            drawContext.move(to: CGPoint(x: endX, y: UIImage.tabBarHeight))
-            drawContext.addLine(to: CGPoint(x: endX, y: UIImage.tabBarHeight + UIImage.kPIMarkerBaseHeight))
+            drawContext.move(to: CGPoint(x: endX, y: UIImage.kPIMarkerBaseY))
+            drawContext.addLine(to: CGPoint(x: endX, y: UIImage.kPIMarkerBaseY + UIImage.kPIMarkerBaseHeight))
             drawContext.setStrokeColor(baseMarkerColor)
             drawContext.strokePath()
             
             // Draw the rest of the End Marker.
             drawContext.setLineWidth(UIImage.kPIMarkerWidth)
-            drawContext.move(to: CGPoint(x: endX, y: UIImage.tabBarHeight + UIImage.kPIMarkerBaseHeight))
+            drawContext.move(to: CGPoint(x: endX, y: UIImage.kPIMarkerBaseY + UIImage.kPIMarkerBaseHeight))
             drawContext.addLine(to: CGPoint(x: endX, y: onSongGraph.size.height))
             drawContext.setStrokeColor(endMarkerColor)
             drawContext.strokePath()
@@ -652,7 +659,7 @@ extension UIImage
         onContext.setShouldAntialias(true)
         onContext.setTextDrawingMode(CGTextDrawingMode.fill)
         onContext.setStrokeColor(UIImage.kPracticeItemNameColor.cgColor)
-        onContext.translateBy(x: 0, y: forSongGraph.size.height + UIImage.tabBarHeight)
+        onContext.translateBy(x: 0, y: forSongGraph.size.height + UIImage.kPIMarkerBaseY)
         onContext.scaleBy(x: 1.0, y: -1.0)
         let textPoint: CGPoint = CGPoint(x: atPoint.x - halfTextWidth, y: atPoint.y + quarterTextHeight)
         valueToBePrinted.draw(at: textPoint, withAttributes: fontAttributes)

@@ -17,6 +17,7 @@ enum ImportErrors: Error
     case badFileType(fileExtension: String)
     case fileTypeNotSupported(fileExtension: String)
     case outputFileAlreadyExists
+    case cantKillOldOutputFile(fileName: String)
     case inputURLMissing
     case outputURLMissing
     case sessionFailedToInit

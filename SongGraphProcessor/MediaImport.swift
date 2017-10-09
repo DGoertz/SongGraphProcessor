@@ -66,10 +66,16 @@ class MediaImport
         {
             throw ImportErrors.fileTypeNotSupported(fileExtension: goodInput.pathExtension)
         }
-        guard !FileManager.default.fileExists(atPath: goodOutput.path)
-            else
+        if FileManager.default.fileExists(atPath: goodOutput.path)
         {
-            throw ImportErrors.outputFileAlreadyExists
+            do
+            {
+                try FileManager.default.removeItem(atPath: goodOutput.path)
+            }
+            catch
+            {
+                throw ImportErrors.cantKillOldOutputFile(fileName: goodOutput.path)
+            }
         }
         do
         {

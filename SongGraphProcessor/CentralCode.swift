@@ -45,15 +45,4 @@ class CentralCode
             hasSpinner.removeFromSuperview()
         }
     }
-    
-    class func getDBContext() -> NSManagedObjectContext
-    {
-        guard let myApp = (UIApplication.shared.delegate) as? AppDelegate else {
-            print("Failed to obtain the Application Delegate!")
-            abort()
-        }
-        // This is needed for the unique constraint defined in PracticeItem.
-        myApp.persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        return myApp.persistentContainer.viewContext
-    }
 }
