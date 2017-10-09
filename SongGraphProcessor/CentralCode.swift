@@ -31,9 +31,13 @@ class CentralCode
     class func startSpinner(onView: UIView) -> UIActivityIndicatorView
     {
         let spinner = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
-        spinner.center = onView.center
-        onView.addSubview(spinner)
-        spinner.startAnimating()
+        DispatchQueue.main.async
+            {
+                spinner.center = onView.center
+                onView.addSubview(spinner)
+                onView.bringSubview(toFront: spinner)
+                spinner.startAnimating()
+        }
         return spinner
     }
     
@@ -41,8 +45,11 @@ class CentralCode
     {
         if let hasSpinner = theSpinner
         {
+            DispatchQueue.main.async
+                {
             hasSpinner.stopAnimating()
             hasSpinner.removeFromSuperview()
+            }
         }
     }
 }
