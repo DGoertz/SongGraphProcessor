@@ -146,7 +146,11 @@ class MediaImport
         self.exportSession!.exportAsynchronously(
             completionHandler: {
                 () -> Void in
-                completionCode(self, nil)
+                
+                DispatchQueue.main.async {
+
+                    completionCode(self, nil)
+                }
         })
 
         return
@@ -190,9 +194,13 @@ class MediaImport
                         }
                         catch let error
                         {
+                            DispatchQueue.main.async {
                             completionCode(self, error)
+                            }
                         }
+                    DispatchQueue.main.async {
                     completionCode(self, nil)
+                    }
                     
             })
         }

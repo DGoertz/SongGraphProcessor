@@ -201,7 +201,9 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
                                 {
                                     if FileManager.default.fileExists(atPath: importCacheFileURL.path)
                                     {
+                                        print("Before perform!")
                                         strongSelf.performSegue(withIdentifier: SongsTVC.segueToSongGrapherKey, sender: strongSelf)
+                                        print("After perform!")
                                     }
                                     else
                                     {

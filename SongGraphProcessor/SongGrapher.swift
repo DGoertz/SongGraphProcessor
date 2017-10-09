@@ -257,12 +257,18 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     
     // MARK: UIView Methods.
     
+    override func viewWillAppear(_ animated: Bool)
+    {
+        print("In View Will Appear!")
+    }
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
         self.view.isUserInteractionEnabled = true
-        self.halfScreenWidth = self.view.frame.width / 2
+        self.halfScreenWidth = (self.view.frame.width / 2)
+        print("Before loading song!")
         self.loadSongGraph()
+        print("After loading song!")
         self.loadSongPlayer()
         self.gotoFirstPracticeItem()
         self.startTimer()
@@ -318,8 +324,8 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
             self.fastBackward5.isEnabled = true
             self.startPracticeItem.isEnabled = false
             self.endPracticeItem.isEnabled = false
-            self.nextPracticeItem.isEnabled = true
-            self.prevPracticeItem.isEnabled = true
+            self.nextPracticeItem.isEnabled = self.currentPI != nil
+            self.prevPracticeItem.isEnabled = self.currentPI != nil
         case .playing:
             self.playButton.isEnabled = false
             self.pauseButton.isEnabled = true
