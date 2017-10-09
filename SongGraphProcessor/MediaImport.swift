@@ -143,6 +143,7 @@ class MediaImport
         default:
             self.exportSession!.outputFileType = AVFileType.mp4
         }
+        // This is envoking Apple code asynchronously so when it returns I have to execute my completionCode in the 'main' thread.
         self.exportSession!.exportAsynchronously(
             completionHandler: {
                 () -> Void in
@@ -184,6 +185,7 @@ class MediaImport
         {
             hasSession.outputURL = movieFileURL
             hasSession.outputFileType = AVFileType.mov
+            // This is envoking Apple code asynchronously so when it returns I have to execute my completionCode in the 'main' thread.
             hasSession.exportAsynchronously(completionHandler:
                 {
                     () -> Void in
@@ -195,11 +197,15 @@ class MediaImport
                         catch let error
                         {
                             DispatchQueue.main.async {
+                                
                             completionCode(self, error)
+                                
                             }
                         }
                     DispatchQueue.main.async {
+                        
                     completionCode(self, nil)
+                        
                     }
                     
             })

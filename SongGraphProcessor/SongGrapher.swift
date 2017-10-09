@@ -257,18 +257,12 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     
     // MARK: UIView Methods.
     
-    override func viewWillAppear(_ animated: Bool)
-    {
-        print("In View Will Appear!")
-    }
     override func viewDidAppear(_ animated: Bool)
     {
         super.viewDidAppear(animated)
         self.view.isUserInteractionEnabled = true
         self.halfScreenWidth = (self.view.frame.width / 2)
-        print("Before loading song!")
         self.loadSongGraph()
-        print("After loading song!")
         self.loadSongPlayer()
         self.gotoFirstPracticeItem()
         self.startTimer()
@@ -415,8 +409,6 @@ class SongGrapher : UIViewController, UIScrollViewDelegate
     {
         do
         {
-            // In the past I had to do this.  Leave the old version for now!
-            //let currentPI = self.currentPI
             guard let pi = self.currentPI
             else {
                 CentralCode.showError(message: "Nil Current Practice Item found when trying to persist to DB!", title: "Bad", onViewController: self)

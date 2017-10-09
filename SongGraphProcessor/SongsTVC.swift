@@ -135,6 +135,45 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
         process(mediaItem: backingMediaItem, fromPicker: nil)
     }
     
+    // MARK: UITableView Editting Delegate Methods.
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath)
+    {
+        let chosenSong = self.songs[indexPath.row]
+        let okAction: (UIAlertAction) -> Swift.Void = { (UIAlertAction) -> Swift.Void in
+    
+            self.context?.delete(chosenSong)
+            do
+            {
+                try self.context?.save()
+                self.songs.remove(at: indexPath.row)
+                tableView.reloadData()
+            }
+            catch let err
+            {
+                CentralCode.showError(message: err.localizedDescription, title: "Error committing Delete operations!", onViewController: self)
+                return
+            }
+        }
+        let cancelAction: (UIAlertAction) -> Swift.Void = { (UIAlertAction) -> Swift.Void in
+            
+            return
+            
+        }
+        if let hasPractices = chosenSong.practices
+        {
+            if hasPractices.count > 0
+            {
+                CentralCode.askOk(message: "Are you sure you want to delete?", title: "Warning Song has Practice Items", onViewController: self, okAction: okAction, cancelAction: cancelAction)
+                return
+            }
+            else
+            {
+                let dummy: UIAlertAction = UIAlertAction(title: "Dummy", style: .default, handler: nil)
+                okAction(dummy)                
+            }
+        }
+    }
+    
     // MARK: View Transition Methods.
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
@@ -149,6 +188,8 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
             nextVC.title = "\(artistAndAlbum)"
         }
     }
+    
+    // MARK: MPMediaPicker helper Method.
     
     func process(mediaItem: MPMediaItem, fromPicker: MPMediaPickerController?)
     {
@@ -201,9 +242,7 @@ class SongsTVC : UITableViewController, MPMediaPickerControllerDelegate
                                 {
                                     if FileManager.default.fileExists(atPath: importCacheFileURL.path)
                                     {
-                                        print("Before perform!")
                                         strongSelf.performSegue(withIdentifier: SongsTVC.segueToSongGrapherKey, sender: strongSelf)
-                                        print("After perform!")
                                     }
                                     else
                                     {

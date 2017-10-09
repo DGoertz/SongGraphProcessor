@@ -20,6 +20,16 @@ class CentralCode
         onViewController.present(errorBox, animated: true, completion: nil)
     }
     
+    class func askOk(message: String, title: String, onViewController: UIViewController, okAction: @escaping ((UIAlertAction) -> Swift.Void), cancelAction: @escaping ((UIAlertAction) -> Swift.Void))
+    {
+        let okBox: UIAlertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let okButton: UIAlertAction = UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: okAction)
+        okBox.addAction(okButton)
+        let cancelButton = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.default, handler: cancelAction)
+        okBox.addAction(cancelButton)
+        onViewController.present(okBox, animated: true, completion: nil)
+    }
+    
     class func runInMainThread(code: @escaping ()-> Void) -> Void
     {
         DispatchQueue.main.async
